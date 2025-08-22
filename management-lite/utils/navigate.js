@@ -15,16 +15,17 @@ module.exports = {
       '/pages/mine/mine'
     ];
     
-    // 提取纯路径（去除参数）
-    const pureUrl = url.split('?')[0];
-    
     // 检查目标页面是否为tabBar页面
-    const isTabBarPage = tabBarPages.includes(pureUrl);
+    const isTabBarPage = tabBarPages.some(tabPath => {
+      // 处理带参数的URL情况
+      const pureUrl = url.split('?')[0];
+      return pureUrl === tabPath;
+    });
     
     if (isTabBarPage) {
       // 对于tabBar页面使用switchTab
       wx.switchTab({
-        url: pureUrl, // 确保只传递路径，不带参数
+        url: url.split('?')[0], // 移除参数，switchTab不支持参数
         fail: (err) => {
           console.error('switchTab失败:', err);
           // 失败时降级使用navigateTo
@@ -37,17 +38,8 @@ module.exports = {
         url,
         fail: (err) => {
           console.error('navigateTo失败:', err);
-          // 尝试redirectTo
-          wx.redirectTo({
-            url,
-            fail: (err2) => {
-              console.error('redirectTo也失败:', err2);
-              wx.showToast({
-                title: '跳转失败',
-                icon: 'none'
-              });
-            }
-          });
+          // 尝试其他跳转方式
+          wx.redirectTo({ url });
         }
       });
     }
@@ -58,16 +50,11 @@ module.exports = {
    * @param {string} defaultTab 当无法返回时的默认tab页面
    */
   safeBack: function(defaultTab = '/pages/index/index') {
-    try {
-      const pages = getCurrentPages();
-      if (pages && pages.length > 1) {
-        wx.navigateBack({ delta: 1 });
-      } else {
-        // 只有一个页面时，返回默认tab页面
-        this.safeNavigate(defaultTab);
-      }
-    } catch (error) {
-      console.error('safeBack失败:', error);
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      // 只有一个页面时，返回默认tab页面
       wx.switchTab({ url: defaultTab });
     }
   }
