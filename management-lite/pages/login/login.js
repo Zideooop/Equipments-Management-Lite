@@ -1,36 +1,5 @@
 // pages/login/login.js
-// 导航工具模块 - 统一管理页面跳转
-let navigateUtils;
-try {
-  navigateUtils = require('../../utils/navigate.js');
-} catch (e) {
-  try {
-    navigateUtils = require('/utils/navigate.js');
-  } catch (e2) {
-    navigateUtils = {
-      safeNavigate: function(url) {
-        const TabBarPages = ['/pages/index/index', '/pages/manage/manage', '/pages/mine/mine'];
-        const isTabBar = TabBarPages.some(tabPath => url.startsWith(tabPath));
-        
-        if (isTabBar) {
-          wx.switchTab({ url });
-        } else {
-          wx.navigateTo({ url });
-        }
-      },
-      safeBack: function(defaultTab = '/pages/index/index') {
-        const pages = getCurrentPages();
-        if (pages.length > 1) {
-          wx.navigateBack({ delta: 1 });
-        } else {
-          wx.switchTab({ url: defaultTab });
-        }
-      }
-    };
-    console.warn('导航工具模块未找到，使用降级版本');
-  }
-}
-
+const navigateUtils = require('../../utils/navigate.js');
 const { safeNavigate, safeBack } = navigateUtils;
 
 Page({
@@ -42,57 +11,54 @@ Page({
     errorMsg: ''
   },
 
-  onLoad() {
-    // 检查是否已登录，若已登录则跳转到首页
+  onLoad: function() {
+    console.log('登录页面加载完成');
     this.checkLoginStatus();
   },
 
-  onShow() {
-    // 每次显示页面都检查登录状态
+  onReady: function() {
+    console.log('登录页面准备就绪');
+  },
+
+  onShow: function() {
     this.checkLoginStatus();
   },
 
-  // 检查登录状态
-  checkLoginStatus() {
+  checkLoginStatus: function() {
     try {
       const userInfo = wx.getStorageSync('userInfo');
-      if (userInfo && userInfo.token) {
-        // 已登录，跳转到首页
+      if (userInfo && (userInfo.token || userInfo.isGuest)) {
         setTimeout(() => {
+          // 修复登录跳转逻辑，确保跳转到首页
           safeNavigate('/pages/index/index');
         }, 500);
       }
     } catch (error) {
       console.error('检查登录状态失败:', error);
-      // 忽略错误，继续显示登录页面
     }
   },
 
-  // 用户名输入
-  handleUsernameInput(e) {
+  handleUsernameInput: function(e) {
     this.setData({
       username: e.detail.value.trim(),
       errorMsg: ''
     });
   },
 
-  // 密码输入
-  handlePasswordInput(e) {
+  handlePasswordInput: function(e) {
     this.setData({
       password: e.detail.value.trim(),
       errorMsg: ''
     });
   },
 
-  // 切换密码显示状态
-  togglePasswordVisibility() {
+  togglePasswordVisibility: function() {
     this.setData({
       showPassword: !this.data.showPassword
     });
   },
 
-  // 登录处理
-  handleLogin() {
+  handleLogin: function() {
     const { username, password } = this.data;
     
     // 输入验证
@@ -109,74 +75,205 @@ Page({
     // 显示加载状态
     this.setData({ isLoading: true, errorMsg: '' });
     
-    try {
-      // 模拟登录请求
-      setTimeout(() => {
-        // 实际项目中应替换为真实接口调用
-        // 这里使用简单验证作为示例
-        if (username === 'admin' && password === 'admin') {
-          // 登录成功，保存用户信息
-          const userInfo = {
-            id: '1',
-            username: username,
-            nickName: '管理员',
-            token: Date.now().toString(),
-            loginTime: new Date().toISOString()
-          };
-          
-          // 保存到本地存储
-          wx.setStorageSync('userInfo', userInfo);
-          
-          // 更新全局数据
-          const app = getApp();
-          app.globalData.userInfo = userInfo;
-          
-          // 记录登录日志
-          app.addActivityLog({
-            type: '登录',
-            content: `${username} 登录系统`,
-            equipmentId: ''
-          });
-          
-          // 登录成功提示
-          wx.showToast({
-            title: '登录成功',
-            icon: 'success',
-            duration: 1500
-          });
-          
-          // 跳转到首页
-          setTimeout(() => {
-            safeNavigate('/pages/index/index');
-          }, 1500);
-        } else {
-          // 登录失败
-          this.setData({
-            isLoading: false,
-            errorMsg: '用户名或密码错误'
-          });
-        }
-      }, 1500);
-    } catch (error) {
-      console.error('登录过程出错:', error);
+    // 调用云函数进行登录验证
+    wx.cloud.callFunction({
+      name: 'login',
+      data: {
+        username: username,
+        password: password
+      }
+    }).then(res => {
+      this.setData({ isLoading: false });
+      
+      if (res.result.success) {
+        // 登录成功，保存用户信息
+        const userInfo = res.result.userInfo;
+        
+        // 保存到本地存储
+        wx.setStorageSync('userInfo', userInfo);
+        
+        // 更新全局数据
+        const app = getApp();
+        app.globalData.userInfo = userInfo;
+        
+        // 记录登录日志
+        app.addActivityLog({
+          type: '登录',
+          content: `${username} 登录系统`,
+          equipmentId: ''
+        });
+        
+        // 登录成功提示
+        wx.showToast({
+          title: '登录成功',
+          icon: 'success',
+          duration: 1500
+        });
+        
+        // 同步数据
+        app.syncData(false);
+        
+        // 跳转到首页
+        setTimeout(() => {
+          safeNavigate('/pages/index/index');
+        }, 1500);
+      } else {
+        // 登录失败
+        this.setData({
+          errorMsg: res.result.message || '用户名或密码错误'
+        });
+      }
+    }).catch(err => {
+      console.error('登录过程出错:', err);
       this.setData({
         isLoading: false,
         errorMsg: '登录失败，请重试'
       });
-    }
+    });
   },
 
-  // 跳转到注册页面
-  navigateToRegister() {
+  wechatLogin: function() {
+    this.setData({ isLoading: true, errorMsg: '' });
+    
+    wx.showLoading({ title: '登录中...' });
+    
+    // 调用微信登录接口
+    wx.login({
+      success: (loginRes) => {
+        if (loginRes.code) {
+          // 获取用户信息
+          wx.getUserProfile({
+            desc: '用于完善会员资料',
+            success: (userInfoRes) => {
+              // 调用云函数完成登录
+              wx.cloud.callFunction({
+                name: 'login',
+                data: {
+                  code: loginRes.code,
+                  userInfo: userInfoRes.userInfo
+                }
+              }).then(res => {
+                wx.hideLoading();
+                this.setData({ isLoading: false });
+                
+                if (res.result.success) {
+                  // 登录成功，保存用户信息
+                  const userInfo = res.result.userInfo;
+                  
+                  // 保存到本地存储
+                  wx.setStorageSync('userInfo', userInfo);
+                  
+                  // 更新全局数据
+                  const app = getApp();
+                  app.globalData.userInfo = userInfo;
+                  
+                  // 记录登录日志
+                  app.addActivityLog({
+                    type: '登录',
+                    content: `${userInfo.nickName} 通过微信登录系统`,
+                    equipmentId: ''
+                  });
+                  
+                  wx.showToast({
+                    title: '微信登录成功',
+                    icon: 'success',
+                    duration: 1500
+                  });
+                  
+                  // 同步数据
+                  app.syncData(false);
+                  
+                  // 跳转到首页
+                  setTimeout(() => {
+                    safeNavigate('/pages/index/index');
+                  }, 1500);
+                } else {
+                  this.setData({
+                    errorMsg: res.result.message || '登录失败，请重试'
+                  });
+                }
+              }).catch(err => {
+                wx.hideLoading();
+                this.setData({ isLoading: false });
+                console.error('云函数登录失败:', err);
+                this.setData({
+                  errorMsg: '登录失败，请重试'
+                });
+              });
+            },
+            fail: (err) => {
+              wx.hideLoading();
+              this.setData({ isLoading: false });
+              console.error('获取用户信息失败:', err);
+              this.setData({
+                errorMsg: '请允许获取用户信息以完成登录'
+              });
+            }
+          });
+        } else {
+          wx.hideLoading();
+          this.setData({ isLoading: false });
+          console.error('登录失败：' + loginRes.errMsg);
+          this.setData({
+            errorMsg: '登录失败，请重试'
+          });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        this.setData({ isLoading: false });
+        console.error('登录接口调用失败:', err);
+        this.setData({
+          errorMsg: '登录失败，请重试'
+        });
+      }
+    });
+  },
+
+  guestLogin: function() {
+    // 游客登录
+    const guestInfo = {
+      username: 'guest',
+      nickName: '游客',
+      isGuest: true,
+      loginTime: new Date().toISOString()
+    };
+    
+    // 保存到本地存储
+    wx.setStorageSync('userInfo', guestInfo);
+    
+    // 更新全局数据
+    const app = getApp();
+    app.globalData.userInfo = guestInfo;
+    
+    // 记录登录日志
+    app.addActivityLog({
+      type: '登录',
+      content: '游客登录系统',
+      equipmentId: ''
+    });
+    
+    wx.showToast({
+      title: '游客登录成功',
+      icon: 'success',
+      duration: 1500
+    });
+    
+    // 跳转到首页
+    setTimeout(() => {
+      safeNavigate('/pages/index/index');
+    }, 1500);
+  },
+
+  navigateToRegister: function() {
     safeNavigate('/pages/register/register');
   },
 
-  // 忘记密码
-  handleForgotPassword() {
+  handleForgotPassword: function() {
     wx.showModal({
       title: '忘记密码',
       content: '请联系系统管理员重置密码',
       showCancel: false
     });
   }
-})
+});

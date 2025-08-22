@@ -1,65 +1,91 @@
 <view class="container">
-  <view class="title">器材管理</view>
-  
   <!-- 搜索栏 -->
-  <view class="form-group">
-    <input 
-      class="form-control" 
-      placeholder="搜索器材名称、型号或位置..." 
-      value="{{searchKeyword}}"
-      bindinput="onSearchInput"
-    />
+  <view class="search-bar">
+    <view class="search-input">
+      <icon type="search" size="28" color="#999" />
+      <input 
+        placeholder="搜索器材名称、编码、类型..." 
+        value="{{searchKey}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+    <view class="filter-btn" bindtap="toggleFilter">
+      <icon type="filter" size="28" color="#666" />
+      <text>筛选</text>
+    </view>
+    <view class="scan-btn" bindtap="scanCode">
+      <icon type="scan" size="28" color="#666" />
+    </view>
   </view>
-  
-  <!-- 状态筛选 -->
-  <view class="form-group">
-    <view class="form-label">状态筛选</view>
-    <view class="status-options">
+
+  <!-- 筛选面板 -->
+  <view class="filter-panel" wx:if="{{isFilterShow}}">
+    <view class="filter-title">状态筛选</view>
+    <view class="filter-options">
       <view 
         wx:for="{{statusOptions}}" 
-        wx:key="value"
-        class="status-option {{currentStatus === item.value ? 'active' : ''}}"
-        bindtap="onChangeStatus"
-        data-value="{{item.value}}"
+        wx:key="index"
+        class="filter-option {{statusFilter === item ? 'active' : ''}}"
+        bindtap="onStatusChange"
+        data-value="{{item}}"
       >
-        {{item.text}}
+        <text>{{item === 'all' ? '全部' : item}}</text>
       </view>
     </view>
   </view>
-  
+
   <!-- 器材列表 -->
-  <view class="list" wx:if="{{filteredEquipmentList.length > 0}}">
+  <view class="equipment-list">
     <view 
-      class="list-item" 
-      wx:for="{{filteredEquipmentList}}" 
+      wx:for="{{filteredList}}" 
       wx:key="id"
+      class="equipment-item"
       bindtap="goToDetail"
       data-id="{{item.id}}"
     >
-      <view class="list-item-content">
-        <view class="list-item-title">
-          {{item.name}}
-          <view class="tag tag-{{item.status === '在库' ? 'success' : 'warning'}}">
+      <view class="equipment-info">
+        <view class="equipment-name">
+          <text>{{item.name}}</text>
+          <view class="status-tag {{item.status === '在库' ? 'in-stock' : item.status === '借出' ? 'borrowed' : 'maintenance'}}">
             {{item.status}}
           </view>
         </view>
-        <view class="list-item-desc">
-          {{item.type}} | {{item.specification}} | {{item.location}}
+        <view class="equipment-details">
+          <text class="detail-item">编码: {{item.code}}</text>
+          <text class="detail-item">类型: {{item.type}}</text>
+        </view>
+        <view class="equipment-location">
+          <icon type="location" size="24" color="#999" />
+          <text>{{item.location || '未设置位置'}}</text>
         </view>
       </view>
+      <view class="equipment-arrow">
+        <icon type="right" size="28" color="#ccc" />
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{filteredList.length === 0 && !loading}}" class="empty-state">
+      <image src="/images/empty-equipment.png" mode="widthFix" class="empty-image" />
+      <text class="empty-text">暂无符合条件的器材</text>
+      <button 
+        bindtap="goToAdd" 
+        class="add-btn"
+        size="mini"
+      >
+        添加器材
+      </button>
+    </view>
+
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <loading size="small" />
+      <text>加载中...</text>
     </view>
   </view>
-  
-  <!-- 空状态 -->
-  <view class="empty-state" wx:else>
-    <view class="empty-state-icon">📦</view>
-    <view>暂无符合条件的器材</view>
-    <button class="btn btn-primary" bindtap="goToAddPage" style="margin-top: 16px;">
-      添加器材
-    </button>
-  </view>
-  
+
   <!-- 添加按钮 -->
-  <view class="fab" bindtap="goToAddPage">+</view>
+  <view class="add-fab" bindtap="goToAdd">
+    <text>+</text>
+  </view>
 </view>
-    

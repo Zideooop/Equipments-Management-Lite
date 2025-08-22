@@ -1,44 +1,239 @@
-/* pages/manage/manage.wxss */
-.status-options {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding-bottom: 120rpx;
 }
 
-.status-option {
-  padding: 6px 14px;
-  background-color: #f5f5f5;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-}
-
-.status-option.active {
-  background-color: #1677ff;
-  color: white;
-}
-
-.list-item-title {
+/* 搜索栏 */
+.search-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  padding: 15rpx 20rpx;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.fab {
+.search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 60rpx;
+  padding: 12rpx 20rpx;
+  margin-right: 15rpx;
+}
+
+.search-input input {
+  flex: 1;
+  margin-left: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  height: 40rpx;
+  line-height: 40rpx;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90rpx;
+  height: 60rpx;
+  margin-right: 10rpx;
+  color: #666;
+  font-size: 26rpx;
+}
+
+.filter-btn text {
+  margin-left: 5rpx;
+}
+
+.scan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  color: #666;
+}
+
+/* 筛选面板 */
+.filter-panel {
+  background-color: #fff;
+  padding: 20rpx 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 15rpx;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.filter-option {
+  padding: 8rpx 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.filter-option.active {
+  background-color: #07c160;
+  color: #fff;
+}
+
+/* 器材列表 */
+.equipment-list {
+  padding: 10rpx 0;
+}
+
+.equipment-item {
+  display: flex;
+  align-items: center;
+  padding: 25rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.equipment-info {
+  flex: 1;
+}
+
+.equipment-name {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10rpx;
+}
+
+.equipment-name text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  max-width: 70%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  font-weight: normal;
+}
+
+.status-tag.in-stock {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-tag.borrowed {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-tag.maintenance {
+  background-color: #fff7e6;
+  color: #faad14;
+  border: 1px solid #ffd691;
+}
+
+.equipment-details {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10rpx;
+}
+
+.detail-item {
+  font-size: 26rpx;
+  color: #666;
+  margin-right: 20rpx;
+  margin-bottom: 5rpx;
+}
+
+.equipment-location {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.equipment-location text {
+  margin-left: 5rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.equipment-arrow {
+  color: #ccc;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+  text-align: center;
+}
+
+.empty-image {
+  width: 240rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+.add-btn {
+  background-color: #07c160;
+  color: #fff;
+  border-radius: 40rpx;
+  padding: 0 40rpx;
+}
+
+/* 加载中 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.loading-state loading {
+  margin-bottom: 20rpx;
+}
+
+/* 添加按钮 */
+.add-fab {
   position: fixed;
-  right: 20px;
-  bottom: 80px;
-  width: 56px;
-  height: 56px;
+  bottom: 60rpx;
+  right: 40rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  background-color: #1677ff;
-  color: white;
+  background-color: #07c160;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
-  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4);
-  z-index: 999;
+  font-size: 60rpx;
+  box-shadow: 0 4rpx 16rpx rgba(7, 193, 96, 0.4);
+  z-index: 99;
 }
-    

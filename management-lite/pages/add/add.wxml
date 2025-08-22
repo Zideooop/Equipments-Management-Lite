@@ -1,93 +1,182 @@
 <view class="container">
-  <view class="title">添加器材</view>
+  <view class="page-title">{{isEditing ? '编辑器材' : '添加新器材'}}</view>
   
-  <view class="card">
-    <view class="form-group">
-      <view class="form-label">器材名称 <text style="color: #ff4d4f;">*</text></view>
-      <input 
-        class="form-control" 
-        placeholder="请输入器材名称" 
-        value="{{equipment.name}}"
-        bindinput="handleInput"
-        data-field="name"
-      />
+  <form class="equipment-form">
+    <!-- 器材编码 -->
+    <view class="form-item">
+      <view class="form-label required">器材编码</view>
+      <view class="form-content">
+        <input 
+          type="text" 
+          placeholder="请输入器材编码" 
+          value="{{equipment.code}}"
+          data-field="code"
+          bindinput="handleInput"
+          class="form-input"
+        />
+        <button bindtap="scanToFillCode" class="scan-btn" size="mini" type="primary">
+          扫码
+        </button>
+      </view>
     </view>
     
-    <view class="form-group">
-      <view class="form-label">器材类型 <text style="color: #ff4d4f;">*</text></view>
-      <input 
-        class="form-control" 
-        placeholder="请输入器材类型" 
-        value="{{equipment.type}}"
-        bindinput="handleInput"
-        data-field="type"
-      />
+    <!-- 器材名称 -->
+    <view class="form-item">
+      <view class="form-label required">器材名称</view>
+      <view class="form-content">
+        <input 
+          type="text" 
+          placeholder="请输入器材名称" 
+          value="{{equipment.name}}"
+          data-field="name"
+          bindinput="handleInput"
+          class="form-input"
+        />
+      </view>
     </view>
     
-    <view class="form-group">
+    <!-- 器材类型 -->
+    <view class="form-item">
+      <view class="form-label required">器材类型</view>
+      <view class="form-content">
+        <input 
+          type="text" 
+          placeholder="请输入器材类型" 
+          value="{{equipment.type}}"
+          data-field="type"
+          bindinput="handleInput"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 规格型号 -->
+    <view class="form-item">
       <view class="form-label">规格型号</view>
-      <input 
-        class="form-control" 
-        placeholder="请输入规格型号" 
-        value="{{equipment.specification}}"
-        bindinput="handleInput"
-        data-field="specification"
-      />
+      <view class="form-content">
+        <input 
+          type="text" 
+          placeholder="请输入规格型号" 
+          value="{{equipment.specification}}"
+          data-field="specification"
+          bindinput="handleInput"
+          class="form-input"
+        />
+      </view>
     </view>
     
-    <view class="form-group">
-      <view class="form-label">数量 <text style="color: #ff4d4f;">*</text></view>
-      <input 
-        class="form-control" 
-        type="number"
-        placeholder="请输入数量" 
-        value="{{equipment.quantity}}"
-        bindinput="handleInput"
-        data-field="quantity"
-        min="1"
-      />
+    <!-- 数量 -->
+    <view class="form-item">
+      <view class="form-label required">数量</view>
+      <view class="form-content quantity-control">
+        <button 
+          bindtap="adjustQuantity" 
+          data-type="decrease"
+          class="quantity-btn"
+          size="mini"
+        >
+          -
+        </button>
+        <input 
+          type="number" 
+          value="{{equipment.quantity}}"
+          data-field="quantity"
+          bindinput="handleInput"
+          class="quantity-input"
+        />
+        <button 
+          bindtap="adjustQuantity" 
+          data-type="increase"
+          class="quantity-btn"
+          size="mini"
+        >
+          +
+        </button>
+      </view>
     </view>
     
-    <view class="form-group">
+    <!-- 存放位置 -->
+    <view class="form-item">
       <view class="form-label">存放位置</view>
-      <input 
-        class="form-control" 
-        placeholder="请输入存放位置" 
-        value="{{equipment.location}}"
-        bindinput="handleInput"
-        data-field="location"
-      />
+      <view class="form-content">
+        <input 
+          type="text" 
+          placeholder="请输入存放位置" 
+          value="{{equipment.location}}"
+          data-field="location"
+          bindinput="handleInput"
+          class="form-input"
+        />
+      </view>
     </view>
     
-    <view class="form-group">
-      <view class="form-label">状态</view>
-      <picker 
-        class="form-control"
-        value="{{equipment.status}}" 
-        range="{{statusOptions}}"
-        bindchange="handleStatusChange"
-        style="padding: 10px 16px; border: 1px solid #ddd; border-radius: 6px;"
-      >
-        {{equipment.status}}
-      </picker>
+    <!-- 状态 -->
+    <view class="form-item">
+      <view class="form-label required">状态</view>
+      <view class="form-content">
+        <picker 
+          value="{{equipment.status}}" 
+          range="{{statusOptions}}"
+          bindchange="handleStatusChange"
+          class="form-picker"
+        >
+          <view class="picker-view">{{equipment.status}}</view>
+        </picker>
+      </view>
     </view>
     
-    <view class="form-group">
+    <!-- 购买日期 -->
+    <view class="form-item">
+      <view class="form-label">购买日期</view>
+      <view class="form-content">
+        <view 
+          class="date-picker" 
+          bindtap="onDisplay"
+        >
+          {{equipment.purchaseDate || '请选择购买日期'}}
+        </view>
+        <picker-view
+          type="date"
+          value="{{currentDate}}"
+          min="{{minDate}}"
+          max="{{maxDate}}"
+          visible="{{dateVisible}}"
+          onConfirm="onConfirm"
+          onCancel="onClose"
+        />
+      </view>
+    </view>
+    
+    <!-- 备注 -->
+    <view class="form-item">
       <view class="form-label">备注</view>
-      <textarea 
-        class="form-control" 
-        placeholder="请输入备注信息" 
-        value="{{equipment.remarks}}"
-        bindinput="handleInput"
-        data-field="remarks"
-        style="min-height: 100px;"
-      />
+      <view class="form-content">
+        <textarea 
+          placeholder="请输入备注信息" 
+          value="{{equipment.remarks}}"
+          data-field="remarks"
+          bindinput="handleInput"
+          class="form-textarea"
+          auto-height
+        />
+      </view>
     </view>
-  </view>
+  </form>
   
-  <view class="bottom-btn-group">
-    <view class="btn btn-secondary" bindtap="cancel">取消</view>
-    <view class="btn btn-primary" bindtap="saveEquipment">保存</view>
+  <!-- 操作按钮 -->
+  <view class="operation-buttons">
+    <button 
+      bindtap="cancel" 
+      class="cancel-btn"
+    >
+      取消
+    </button>
+    <button 
+      bindtap="saveEquipment" 
+      class="save-btn"
+      type="primary"
+    >
+      {{isEditing ? '更新' : '保存'}}
+    </button>
   </view>
 </view>
-    

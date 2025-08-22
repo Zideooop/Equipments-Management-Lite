@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "首页",
+  "usingComponents": {
+    "action-sheet": "/components/actionSheet/actionSheet"
+  },
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

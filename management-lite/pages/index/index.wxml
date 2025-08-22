@@ -1,64 +1,100 @@
 <view class="container">
-  <!-- 欢迎区域 -->
-  <view class="welcome-section">
-    <view class="welcome-text">{{welcomeText}}</view>
-    <view class="welcome-subtext">{{welcomeSubtext}}</view>
+  <!-- 顶部用户信息 -->
+  <view class="user-info">
+    <view class="user-avatar">
+      <image 
+        src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" 
+        mode="cover"
+      ></image>
+    </view>
+    <view class="user-name">
+      <text>{{userInfo.nickName || userInfo.username || '用户'}}</text>
+      <text wx:if="{{userInfo.isGuest}}" class="guest-tag">游客</text>
+    </view>
+    <view class="sync-btn" bindtap="goToSync">
+      <icon type="sync" size="28" color="#666" />
+      <text wx:if="{{lastSyncTime}}">上次同步: {{lastSyncTime}}</text>
+      <text wx:else>点击同步</text>
+    </view>
   </view>
-  
+
   <!-- 统计卡片 -->
   <view class="stats-container">
-    <view class="stat-card total" bindtap="goToManage" data-status="all">
-      <view class="stat-number">{{totalEquipments}}</view>
-      <view class="stat-label">总器材数</view>
-    </view>
-    <view class="stat-card available" bindtap="goToManage" data-status="在库">
-      <view class="stat-number">{{availableEquipments}}</view>
-      <view class="stat-label">可用器材</view>
-    </view>
-    <view class="stat-card borrowed" bindtap="goToManage" data-status="借出">
-      <view class="stat-number">{{borrowedEquipments}}</view>
-      <view class="stat-label">已借出</view>
-    </view>
-  </view>
-  
-  <!-- 最近活动 -->
-  <view class="section">
-    <view class="section-title">最近活动</view>
-    <view class="activity-list" wx:if="{{recentActivities.length > 0}}">
-      <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToDetail" data-id="{{item.equipmentId}}">
-        <view class="activity-icon activity-icon-{{item.type === '添加' ? 'add' : item.type === '借出' ? 'lend' : item.type === '归还' ? 'return' : 'delete'}}">
-          {{item.type === '添加' ? '+' : item.type === '借出' ? '借' : item.type === '归还' ? '还' : '删'}}
-        </view>
-        <view class="activity-content">
-          <view class="activity-text">{{item.content}}</view>
-          <view class="activity-time">{{item.formattedTime}}</view>
-        </view>
+    <view class="stat-card" bindtap="goToManage">
+      <view class="stat-title">总数量</view>
+      <view class="stat-value">{{equipmentStats.total}}</view>
+      <view class="stat-icon">
+        <icon type="list" size="36" color="#07c160" />
       </view>
     </view>
     
-    <view class="no-activity" wx:else>
-      <view class="empty-icon">📋</view>
-      <view class="empty-text">暂无活动记录</view>
-      <view class="empty-hint">添加或操作器材后将显示记录</view>
+    <view class="stat-card" bindtap="goToManage">
+      <view class="stat-title">在库</view>
+      <view class="stat-value">{{equipmentStats.inStock}}</view>
+      <view class="stat-icon">
+        <icon type="success" size="36" color="#07c160" />
+      </view>
+    </view>
+    
+    <view class="stat-card" bindtap="goToManage">
+      <view class="stat-title">借出</view>
+      <view class="stat-value">{{equipmentStats.borrowed}}</view>
+      <view class="stat-icon">
+        <icon type="forward" size="36" color="#1890ff" />
+      </view>
+    </view>
+    
+    <view class="stat-card" bindtap="goToManage">
+      <view class="stat-title">维修中</view>
+      <view class="stat-value">{{equipmentStats.maintenance}}</view>
+      <view class="stat-icon">
+        <icon type="warn" size="36" color="#faad14" />
+      </view>
     </view>
   </view>
-  
-  <!-- 底部操作按钮 -->
-  <view class="action-button" bindtap="toggleMenu">+</view>
-  
+
+  <!-- 最近活动 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">最近活动</text>
+      <view class="section-more" bindtap="goToActivityLog">
+        <text>查看全部</text>
+        <icon type="right" size="24" color="#999" />
+      </view>
+    </view>
+    
+    <view class="activity-list">
+      <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item">
+        <view class="activity-icon">
+          <icon 
+            type="{{item.type === '添加' ? 'add' : item.type === '删除' ? 'clear' : 
+                  item.type === '修改' ? 'edit' : item.type === '状态变更' ? 'switch' : 'info'}}" 
+            size="28" 
+            color="{{item.type === '添加' ? '#07c160' : item.type === '删除' ? '#f5222d' : 
+                  item.type === '修改' ? '#1890ff' : item.type === '状态变更' ? '#faad14' : '#8c8c8c'}}" 
+          />
+        </view>
+        <view class="activity-content">
+          <view class="activity-text">{{item.content}}</view>
+          <view class="activity-time">{{formatTime(item.createTime)}}</view>
+        </view>
+      </view>
+      
+      <view wx:if="{{recentActivities.length === 0}}" class="empty-activity">
+        <text>暂无活动记录</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 操作菜单 -->
-  <view class="action-menu {{isMenuOpen ? 'open' : ''}}">
-    <view class="menu-item" bindtap="scanCode">
-      <view class="menu-icon">扫</view>
-      <view class="menu-text">扫码添加</view>
-    </view>
-    <view class="menu-item" bindtap="goToBatchAdd">
-      <view class="menu-icon">批</view>
-      <view class="menu-text">批量添加</view>
-    </view>
-    <view class="menu-item" bindtap="goToAddPage">
-      <view class="menu-icon">单</view>
-      <view class="menu-text">单个添加</view>
-    </view>
+  <action-sheet 
+    show="{{showActionSheet}}" 
+    items="{{actionSheetItems}}"
+    bind:select="onActionSelect"
+  ></action-sheet>
+
+  <!-- 添加按钮 -->
+  <view class="add-btn" bindtap="showActionSheet">
+    <text>+</text>
   </view>
 </view>
