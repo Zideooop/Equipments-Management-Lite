@@ -1,45 +1,61 @@
-// 导航工具函数 - 统一管理页面跳转，避免错误使用switchTab
-const TabBarPages = [
-  '/pages/index/index',    // 首页（TabBar页面）
-  '/pages/manage/manage',  // 管理页（TabBar页面）
-  '/pages/mine/mine'       // 我的页（TabBar页面）
-];
-
 /**
- * 安全的页面跳转方法
- * @param {string} url 目标页面路径
+ * 导航工具模块 - 统一管理页面跳转
+ * 解决 "switchTab:fail can not switch to no-tabBar page" 错误
  */
-function safeNavigate(url) {
-  // 判断是否为TabBar页面
-  const isTabBar = TabBarPages.some(tabPath => url.startsWith(tabPath));
-  
-  if (isTabBar) {
-    wx.switchTab({ url });
-  } else {
-    wx.navigateTo({ url });
-  }
-}
-
-/**
- * 返回上一页或默认页面
- * @param {string} defaultTab 当没有上一页时的默认TabBar页面
- */
-function safeBack(defaultTab = '/pages/index/index') {
-  const pages = getCurrentPages();
-  if (pages.length > 1) {
-    wx.navigateBack({ delta: 1 });
-  } else {
-    // 确保默认页面是TabBar页面
-    if (TabBarPages.includes(defaultTab)) {
-      wx.switchTab({ url: defaultTab });
+module.exports = {
+  /**
+   * 安全导航方法
+   * @param {string} url 目标页面路径
+   */
+  safeNavigate: function(url) {
+    // 定义所有tabBar页面路径
+    const tabBarPages = [
+      '/pages/index/index',
+      '/pages/manage/manage',
+      '/pages/mine/mine'
+    ];
+    
+    // 检查目标页面是否为tabBar页面
+    const isTabBarPage = tabBarPages.some(tabPath => {
+      // 处理带参数的URL情况
+      const pureUrl = url.split('?')[0];
+      return pureUrl === tabPath;
+    });
+    
+    if (isTabBarPage) {
+      // 对于tabBar页面使用switchTab
+      wx.switchTab({
+        url: url.split('?')[0], // 移除参数，switchTab不支持参数
+        fail: (err) => {
+          console.error('switchTab失败:', err);
+          // 失败时降级使用navigateTo
+          wx.navigateTo({ url });
+        }
+      });
     } else {
-      wx.switchTab({ url: '/pages/index/index' });
+      // 非tabBar页面使用navigateTo
+      wx.navigateTo({
+        url,
+        fail: (err) => {
+          console.error('navigateTo失败:', err);
+          // 尝试其他跳转方式
+          wx.redirectTo({ url });
+        }
+      });
+    }
+  },
+  
+  /**
+   * 安全返回方法
+   * @param {string} defaultTab 当无法返回时的默认tab页面
+   */
+  safeBack: function(defaultTab = '/pages/index/index') {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      // 只有一个页面时，返回默认tab页面
+      wx.switchTab({ url: defaultTab });
     }
   }
-}
-
-module.exports = {
-  safeNavigate,
-  safeBack,
-  TabBarPages
 };

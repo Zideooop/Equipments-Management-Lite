@@ -89,7 +89,7 @@ Page({
     });
   },
 
-  // 加载最近活动记录
+  // 加载最近活动记录 - 修复时间显示逻辑
   loadRecentActivities() {
     const app = getApp();
     let activities = app.getActivityLog() || [];
@@ -104,11 +104,33 @@ Page({
         try {
           // 修复iOS日期格式兼容性问题
           const iosCompatibleDate = activity.createTime.replace(/-/g, '/');
-          const date = new Date(iosCompatibleDate);
+          const createTime = new Date(iosCompatibleDate);
+          const now = new Date();
+          
+          // 计算时间差
+          const diffMs = now - createTime; // 时间差(毫秒)
+          const diffMins = Math.floor(diffMs / 60000); // 分钟
+          const diffHours = Math.floor(diffMins / 60); // 小时
+          const diffDays = Math.floor(diffHours / 24); // 天
+          
+          // 确定相对时间显示文本
+          let formattedTime;
+          if (diffDays > 1) {
+            formattedTime = `${diffDays}天前`;
+          } else if (diffDays === 1) {
+            formattedTime = '昨天';
+          } else if (diffHours > 0) {
+            formattedTime = `${diffHours}小时前`;
+          } else if (diffMins > 0) {
+            formattedTime = `${diffMins}分钟前`;
+          } else {
+            formattedTime = '刚刚';
+          }
+          
           return {
             ...activity,
             id: activity.id || Date.now().toString() + Math.random().toString(36).substr(2, 5),
-            formattedTime: `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+            formattedTime: formattedTime
           };
         } catch (e) {
           return {
@@ -137,11 +159,39 @@ Page({
         content: '系统初始化完成',
         createTime: new Date().toISOString(),
         equipmentId: '',
-        formattedTime: this.formatDate(new Date().toISOString())
+        formattedTime: this.getRelativeTime(new Date().toISOString())
       };
       this.setData({
         recentActivities: [testActivity]
       });
+    }
+  },
+
+  // 新增：获取相对时间的方法
+  getRelativeTime(dateString) {
+    try {
+      const iosCompatibleDate = dateString.replace(/-/g, '/');
+      const createTime = new Date(iosCompatibleDate);
+      const now = new Date();
+      
+      const diffMs = now - createTime;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffDays > 1) {
+        return `${diffDays}天前`;
+      } else if (diffDays === 1) {
+        return '昨天';
+      } else if (diffHours > 0) {
+        return `${diffHours}小时前`;
+      } else if (diffMins > 0) {
+        return `${diffMins}分钟前`;
+      } else {
+        return '刚刚';
+      }
+    } catch (e) {
+      return '时间格式错误';
     }
   },
 
