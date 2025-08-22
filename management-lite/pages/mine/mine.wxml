@@ -1,0 +1,58 @@
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="card" style="margin: 16px 16px 0;">
+    <view style="display: flex; align-items: center; padding: 8px 0;">
+      <view style="width: 60px; height: 60px; border-radius: 50%; background-color: #eee; display: flex; justify-content: center; align-items: center; margin-right: 16px;">
+        <text style="font-size: 24px; color: #1677ff;">{{userInfo ? userInfo.nickName.charAt(0) : '用'}}</text>
+      </view>
+      <view style="flex: 1;">
+        <view style="font-size: 18px; font-weight: 500; margin-bottom: 4px;">
+          {{userInfo ? userInfo.nickName : '未登录'}}
+        </view>
+        <view style="color: #666; font-size: 12px;">
+          {{userInfo ? '点击可修改个人信息' : '点击登录以使用完整功能'}}
+        </view>
+      </view>
+      <view bindtap="{{userInfo ? 'goToProfile' : 'goToLogin'}}" style="color: #1677ff; font-size: 14px;">
+        {{userInfo ? '编辑' : '登录'}} >
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="list" style="margin: 16px;">
+    <view class="list-item" bindtap="goToRecycleBin">
+      <view style="display: flex; align-items: center;">
+        <view style="width: 24px; height: 24px; margin-right: 12px; color: #ff4d4f;">🗑️</view>
+        <view>回收站</view>
+      </view>
+      <view style="color: #999;">{{recycleCount}} 件</view>
+    </view>
+    
+    <view class="list-item" bindtap="syncData">
+      <view style="display: flex; align-items: center;">
+        <view style="width: 24px; height: 24px; margin-right: 12px; color: #1677ff;">🔄</view>
+        <view>数据同步</view>
+      </view>
+      <view style="color: #999;">
+        {{lastSyncTime || '未同步'}}
+      </view>
+    </view>
+    
+    <view class="list-item" bindtap="goToAbout">
+      <view style="display: flex; align-items: center;">
+        <view style="width: 24px; height: 24px; margin-right: 12px; color: #faad14;">ℹ️</view>
+        <view>关于系统</view>
+      </view>
+      <view style="color: #999;">v1.0.0</view>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view wx:if="{{userInfo}}" class="card" style="margin: 0 16px;">
+    <view class="btn btn-danger" style="width: 100%;" bindtap="logout">
+      退出登录
+    </view>
+  </view>
+</view>
+    

@@ -1,0 +1,66 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="card" style="margin: 16px;">
+    <input 
+      class="form-control" 
+      placeholder="搜索器材名称或型号..." 
+      bindinput="onSearchInput"
+      value="{{searchKeyword}}"
+    />
+  </view>
+
+  <!-- 筛选栏 -->
+  <view style="padding: 0 16px 8px;">
+    <view class="subtitle">筛选</view>
+    <view style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <view 
+        class="tag {{currentStatus === 'all' ? 'tag-success' : ''}}"
+        bindtap="setFilter"
+        data-status="all"
+      >
+        全部
+      </view>
+      <view 
+        class="tag {{currentStatus === '在库' ? 'tag-success' : ''}}"
+        bindtap="setFilter"
+        data-status="在库"
+      >
+        在库
+      </view>
+      <view 
+        class="tag {{currentStatus === '借出' ? 'tag-success' : ''}}"
+        bindtap="setFilter"
+        data-status="借出"
+      >
+        借出
+      </view>
+    </view>
+  </view>
+
+  <!-- 器材列表 -->
+  <view class="list">
+    <view 
+      wx:for="{{filteredEquipmentList}}" 
+      wx:key="id" 
+      class="list-item"
+      bindtap="goToDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="list-item-content">
+        <view class="list-item-title">
+          {{item.name}}
+          <view class="tag {{item.status === '在库' ? 'tag-success' : 'tag-warning'}}" style="margin-left: 8px;">
+            {{item.status}}
+          </view>
+        </view>
+        <view class="list-item-desc">{{item.type}} | {{item.specification}}</view>
+      </view>
+      <view style="color: #999;">{{item.quantity}}件</view>
+    </view>
+
+    <view wx:if="{{filteredEquipmentList.length === 0}}" class="empty-state">
+      <view>暂无符合条件的器材</view>
+    </view>
+  </view>
+</view>
+    

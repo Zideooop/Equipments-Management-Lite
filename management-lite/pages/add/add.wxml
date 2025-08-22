@@ -1,0 +1,93 @@
+<view class="container">
+  <view class="title">添加器材</view>
+  
+  <view class="card">
+    <view class="form-group">
+      <view class="form-label">器材名称 <text style="color: #ff4d4f;">*</text></view>
+      <input 
+        class="form-control" 
+        placeholder="请输入器材名称" 
+        value="{{equipment.name}}"
+        bindinput="handleInput"
+        data-field="name"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">器材类型 <text style="color: #ff4d4f;">*</text></view>
+      <input 
+        class="form-control" 
+        placeholder="请输入器材类型" 
+        value="{{equipment.type}}"
+        bindinput="handleInput"
+        data-field="type"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">规格型号</view>
+      <input 
+        class="form-control" 
+        placeholder="请输入规格型号" 
+        value="{{equipment.specification}}"
+        bindinput="handleInput"
+        data-field="specification"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">数量 <text style="color: #ff4d4f;">*</text></view>
+      <input 
+        class="form-control" 
+        type="number"
+        placeholder="请输入数量" 
+        value="{{equipment.quantity}}"
+        bindinput="handleInput"
+        data-field="quantity"
+        min="1"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">存放位置</view>
+      <input 
+        class="form-control" 
+        placeholder="请输入存放位置" 
+        value="{{equipment.location}}"
+        bindinput="handleInput"
+        data-field="location"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">状态</view>
+      <picker 
+        class="form-control"
+        value="{{equipment.status}}" 
+        range="{{statusOptions}}"
+        bindchange="handleStatusChange"
+        style="padding: 10px 16px; border: 1px solid #ddd; border-radius: 6px;"
+      >
+        {{equipment.status}}
+      </picker>
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea 
+        class="form-control" 
+        placeholder="请输入备注信息" 
+        value="{{equipment.remarks}}"
+        bindinput="handleInput"
+        data-field="remarks"
+        style="min-height: 100px;"
+      />
+    </view>
+  </view>
+  
+  <view class="bottom-btn-group">
+    <view class="btn btn-secondary" bindtap="cancel">取消</view>
+    <view class="btn btn-primary" bindtap="saveEquipment">保存</view>
+  </view>
+</view>
+    

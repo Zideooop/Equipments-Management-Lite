@@ -1,0 +1,52 @@
+<view class="container">
+  <!-- 欢迎信息 -->
+  <view class="card">
+    <view class="title" style="margin-bottom: 8px;">
+      {{userInfo ? '欢迎回来，' + userInfo.nickName : '请登录以使用完整功能'}}
+    </view>
+    <view style="padding: 0 16px 8px; color: #666;">
+      今日是 {{currentDate}}，共管理 {{totalEquipments}} 件器材
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-grid">
+    <view class="stat-card" bindtap="goToManage" data-status="all">
+      <view class="stat-value">{{totalEquipments}}</view>
+      <view class="stat-label">总器材数</view>
+    </view>
+    <view class="stat-card" bindtap="goToManage" data-status="在库">
+      <view class="stat-value">{{availableEquipments}}</view>
+      <view class="stat-label">可用器材</view>
+    </view>
+    <view class="stat-card" bindtap="goToManage" data-status="借出">
+      <view class="stat-value">{{borrowedEquipments}}</view>
+      <view class="stat-label">已借出</view>
+    </view>
+  </view>
+
+  <!-- 最近动态 -->
+  <view style="padding: 0 16px;">
+    <view class="title">最近动态</view>
+  </view>
+  
+  <view class="list">
+    <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToDetail" data-id="{{item.equipmentId}}">
+      <view class="activity-icon activity-icon-{{item.type === '添加' ? 'add' : (item.type === '借出' ? 'lend' : (item.type === '归还' ? 'return' : 'delete'))}}">
+        {{item.type === '添加' ? '+' : (item.type === '借出' ? '借' : (item.type === '归还' ? '还' : '删'))}}
+      </view>
+      <view class="activity-content">
+        <view class="activity-text">{{item.content}}</view>
+        <view class="activity-time">{{item.formattedTime}}</view>
+      </view>
+    </view>
+    
+    <view wx:if="{{recentActivities.length === 0}}" class="empty-state">
+      <view>暂无操作记录</view>
+    </view>
+  </view>
+
+  <!-- 浮动操作按钮 -->
+  <view class="fab" bindtap="showActionSheet">+</view>
+</view>
+    

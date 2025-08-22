@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="title">回收站</view>
+  
+  <view class="card" style="margin: 0 16px;">
+    <view style="color: #666; padding: 8px 0; text-align: center;">
+      已删除的器材会保存在此处，可随时恢复或永久删除
+    </view>
+  </view>
+  
+  <view class="list">
+    <view 
+      wx:for="{{deletedEquipmentList}}" 
+      wx:key="id" 
+      class="list-item"
+    >
+      <view class="list-item-content" bindtap="goToDetail" data-id="{{item.id}}">
+        <view class="list-item-title">{{item.name}}</view>
+        <view class="list-item-desc">{{item.type}} | 删除于 {{formatDate(item.deleteTime)}}</view>
+      </view>
+      <view style="display: flex; gap: 8px;">
+        <view class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" bindtap="restoreEquipment" data-id="{{item.id}}">
+          恢复
+        </view>
+        <view class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" bindtap="permanentlyDelete" data-id="{{item.id}}">
+          删除
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{deletedEquipmentList.length === 0}}" class="empty-state">
+      <view>回收站是空的</view>
+    </view>
+  </view>
+</view>
+    

@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="title">生成器材二维码</view>
+  
+  <view class="card">
+    <view class="form-group">
+      <view class="form-label">选择器材</view>
+      <picker 
+        class="form-control"
+        value="{{selectedEquipmentIndex}}" 
+        range="{{equipmentNames}}"
+        bindchange="onEquipmentChange"
+        style="padding: 10px 16px; border: 1px solid #ddd; border-radius: 6px;"
+      >
+        {{selectedEquipmentIndex >= 0 ? equipmentNames[selectedEquipmentIndex] : '请选择器材'}}
+      </picker>
+    </view>
+    
+    <view wx:if="{{selectedEquipment}}" class="form-group" style="text-align: center;">
+      <view style="margin-bottom: 16px;">
+        {{selectedEquipment.name}} - {{selectedEquipment.specification}}
+      </view>
+      
+      <view style="width: 200px; height: 200px; margin: 0 auto; padding: 10px; background-color: white; display: flex; justify-content: center; align-items: center;">
+        <image 
+          src="{{qrcodeUrl}}" 
+          mode="widthFix" 
+          style="width: 180px; height: 180px;"
+        />
+      </view>
+      
+      <view style="margin-top: 16px; color: #666; font-size: 12px;">
+        扫描二维码可快速查看器材信息
+      </view>
+    </view>
+  </view>
+  
+  <view class="bottom-btn-group" wx:if="{{selectedEquipment}}">
+    <view class="btn btn-secondary" bindtap="saveQrcode">保存图片</view>
+    <view class="btn btn-primary" bindtap="shareQrcode">分享</view>
+  </view>
+</view>
+    

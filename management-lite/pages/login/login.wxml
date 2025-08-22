@@ -1,0 +1,43 @@
+<view class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 16px;">
+  <view style="width: 100px; height: 100px; background-color: #1677ff; border-radius: 20px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px;">
+    <text style="font-size: 40px; color: white;">管</text>
+  </view>
+  
+  <view style="font-size: 24px; font-weight: 600; margin-bottom: 40px;">器材管理系统</view>
+  
+  <view class="card" style="width: 100%; max-width: 300px;">
+    <view class="form-group">
+      <view class="form-label">用户名</view>
+      <input 
+        class="form-control" 
+        placeholder="请输入用户名" 
+        value="{{username}}"
+        bindinput="onUsernameInput"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">密码</view>
+      <input 
+        class="form-control" 
+        type="password"
+        placeholder="请输入密码" 
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+    </view>
+    
+    <view class="form-group">
+      <view class="btn btn-primary" style="width: 100%;" bindtap="login">
+        登录
+      </view>
+    </view>
+    
+    <view style="text-align: center; margin-top: 16px;">
+      <view style="color: #1677ff; font-size: 14px;" bindtap="goToRegister">
+        还没有账号？注册
+      </view>
+    </view>
+  </view>
+</view>
+    
