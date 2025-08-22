@@ -6,10 +6,8 @@
     "pages/add/add",
     "pages/equipmentDetail/equipmentDetail",
     "pages/recycleBin/recycleBin",
-    "pages/login/login",
     "pages/batchAdd/batchAdd",
-    "pages/qrcodeGenerator/qrcodeGenerator",
-    "pages/borrowRecord/borrowRecord"
+    "pages/qrcodeGenerator/qrcodeGenerator"
   ],
   "window": {
     "navigationBarTitleText": "器材管理系统",
@@ -24,21 +22,15 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/home.png",
-        "selectedIconPath": "images/home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/manage/manage",
-        "text": "管理",
-        "iconPath": "images/manage.png",
-        "selectedIconPath": "images/manage-active.png"
+        "text": "管理"
       },
       {
         "pagePath": "pages/mine/mine",
-        "text": "我的",
-        "iconPath": "images/mine.png",
-        "selectedIconPath": "images/mine-active.png"
+        "text": "我的"
       }
     ]
   },
