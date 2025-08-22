@@ -1,66 +1,65 @@
 <view class="container">
+  <view class="title">器材管理</view>
+  
   <!-- 搜索栏 -->
-  <view class="card" style="margin: 16px;">
+  <view class="form-group">
     <input 
       class="form-control" 
-      placeholder="搜索器材名称或型号..." 
-      bindinput="onSearchInput"
+      placeholder="搜索器材名称、型号或位置..." 
       value="{{searchKeyword}}"
+      bindinput="onSearchInput"
     />
   </view>
-
-  <!-- 筛选栏 -->
-  <view style="padding: 0 16px 8px;">
-    <view class="subtitle">筛选</view>
-    <view style="display: flex; flex-wrap: wrap; gap: 8px;">
+  
+  <!-- 状态筛选 -->
+  <view class="form-group">
+    <view class="form-label">状态筛选</view>
+    <view class="status-options">
       <view 
-        class="tag {{currentStatus === 'all' ? 'tag-success' : ''}}"
-        bindtap="setFilter"
-        data-status="all"
+        wx:for="{{statusOptions}}" 
+        wx:key="value"
+        class="status-option {{currentStatus === item.value ? 'active' : ''}}"
+        bindtap="onChangeStatus"
+        data-value="{{item.value}}"
       >
-        全部
-      </view>
-      <view 
-        class="tag {{currentStatus === '在库' ? 'tag-success' : ''}}"
-        bindtap="setFilter"
-        data-status="在库"
-      >
-        在库
-      </view>
-      <view 
-        class="tag {{currentStatus === '出库' ? 'tag-success' : ''}}"
-        bindtap="setFilter"
-        data-status="出库"
-      >
-        出库
+        {{item.text}}
       </view>
     </view>
   </view>
-
+  
   <!-- 器材列表 -->
-  <view class="list">
+  <view class="list" wx:if="{{filteredEquipmentList.length > 0}}">
     <view 
+      class="list-item" 
       wx:for="{{filteredEquipmentList}}" 
-      wx:key="id" 
-      class="list-item"
+      wx:key="id"
       bindtap="goToDetail"
       data-id="{{item.id}}"
     >
       <view class="list-item-content">
         <view class="list-item-title">
           {{item.name}}
-          <view class="tag {{item.status === '在库' ? 'tag-success' : 'tag-warning'}}" style="margin-left: 8px;">
+          <view class="tag tag-{{item.status === '在库' ? 'success' : 'warning'}}">
             {{item.status}}
           </view>
         </view>
-        <view class="list-item-desc">{{item.type}} | {{item.specification}}</view>
+        <view class="list-item-desc">
+          {{item.type}} | {{item.specification}} | {{item.location}}
+        </view>
       </view>
-      <view style="color: #999;">{{item.quantity}}件</view>
-    </view>
-
-    <view wx:if="{{filteredEquipmentList.length === 0}}" class="empty-state">
-      <view>暂无符合条件的器材</view>
     </view>
   </view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:else>
+    <view class="empty-state-icon">📦</view>
+    <view>暂无符合条件的器材</view>
+    <button class="btn btn-primary" bindtap="goToAddPage" style="margin-top: 16px;">
+      添加器材
+    </button>
+  </view>
+  
+  <!-- 添加按钮 -->
+  <view class="fab" bindtap="goToAddPage">+</view>
 </view>
     

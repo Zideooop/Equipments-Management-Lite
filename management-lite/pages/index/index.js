@@ -1,4 +1,38 @@
 // pages/index/index.js
+// 导航工具模块 - 统一管理页面跳转
+let navigateUtils;
+try {
+  navigateUtils = require('../../utils/navigate.js');
+} catch (e) {
+  try {
+    navigateUtils = require('/utils/navigate.js');
+  } catch (e2) {
+    navigateUtils = {
+      safeNavigate: function(url) {
+        const TabBarPages = ['/pages/index/index', '/pages/manage/manage', '/pages/mine/mine'];
+        const isTabBar = TabBarPages.some(tabPath => url.startsWith(tabPath));
+        
+        if (isTabBar) {
+          wx.switchTab({ url });
+        } else {
+          wx.navigateTo({ url });
+        }
+      },
+      safeBack: function(defaultTab = '/pages/index/index') {
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
+          wx.navigateBack({ delta: 1 });
+        } else {
+          wx.switchTab({ url: defaultTab });
+        }
+      }
+    };
+    console.warn('导航工具模块未找到，使用降级版本');
+  }
+}
+
+const { safeNavigate, safeBack } = navigateUtils;
+
 Page({
   data: {
     totalEquipments: 0,
@@ -7,49 +41,43 @@ Page({
     recentActivities: [],
     isMenuOpen: false,
     isAnimating: false,
-    userName: '',
-    currentDate: ''
+    welcomeText: '',
+    welcomeSubtext: ''
   },
 
-  onLoad: function(options) {
-    // 获取当前日期
-    this.setCurrentDate();
-    
-    // 获取用户信息
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo && userInfo.username) {
-      this.setData({ userName: userInfo.username });
-    }
-    
-    this.loadLocalData();
+  onLoad() {
+    this.setWelcomeText();
+    this.loadEquipmentStats();
     this.loadRecentActivities();
   },
 
-  onShow: function() {
-    this.loadLocalData();
+  onShow() {
+    this.loadEquipmentStats();
     this.loadRecentActivities();
   },
 
-  // 设置当前日期显示
-  setCurrentDate: function() {
+  // 设置欢迎信息
+  setWelcomeText() {
+    const app = getApp();
+    const userInfo = app.globalData.userInfo || {};
+    const userName = userInfo.username || '管理员';
     const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
     const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     const weekDay = weekDays[date.getDay()];
+    // 修复日期格式，确保兼容性
+    const today = `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日`;
     
     this.setData({
-      currentDate: `${year}年${month}月${day}日 ${weekDay}`
+      welcomeText: `欢迎回来，${userName}`,
+      welcomeSubtext: `${today} ${weekDay}`
     });
   },
 
-  // 加载本地数据
-  loadLocalData: function() {
+  // 加载器材统计数据
+  loadEquipmentStats() {
     const app = getApp();
-    const equipmentList = app.getEquipmentList();
+    const equipmentList = app.getEquipmentList() || [];
     
-    // 计算统计数据
     const total = equipmentList.length;
     const available = equipmentList.filter(item => item.status === '在库').length;
     const borrowed = equipmentList.filter(item => item.status === '借出').length;
@@ -61,82 +89,179 @@ Page({
     });
   },
 
-  // 加载最近活动
-  loadRecentActivities: function() {
-    const activities = wx.getStorageSync('activityLog') || [];
-    // 按时间排序，取最近5条
-    const sortedActivities = activities.sort((a, b) => {
-      return new Date(b.timestamp) - new Date(a.timestamp);
-    }).slice(0, 5);
+  // 加载最近活动记录
+  loadRecentActivities() {
+    const app = getApp();
+    let activities = app.getActivityLog() || [];
     
-    // 格式化时间显示
-    const formattedActivities = sortedActivities.map(activity => {
-      const date = new Date(activity.timestamp);
-      return {
-        ...activity,
-        formattedTime: `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+    if (!Array.isArray(activities)) {
+      activities = [];
+    }
+    
+    const formattedActivities = activities
+      .filter(activity => activity && activity.content && activity.createTime && activity.equipmentId)
+      .map(activity => {
+        try {
+          // 修复iOS日期格式兼容性问题
+          const iosCompatibleDate = activity.createTime.replace(/-/g, '/');
+          const date = new Date(iosCompatibleDate);
+          return {
+            ...activity,
+            id: activity.id || Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            formattedTime: `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+          };
+        } catch (e) {
+          return {
+            ...activity,
+            formattedTime: '时间格式错误'
+          };
+        }
+      })
+      .sort((a, b) => {
+        // 修复排序时的日期兼容性问题
+        const dateA = new Date(a.createTime.replace(/-/g, '/'));
+        const dateB = new Date(b.createTime.replace(/-/g, '/'));
+        return dateB - dateA;
+      })
+      .slice(0, 5);
+    
+    this.setData({
+      recentActivities: formattedActivities
+    });
+    
+    // 添加测试记录如果没有活动
+    if (formattedActivities.length === 0) {
+      const testActivity = {
+        id: 'test' + Date.now(),
+        type: '系统',
+        content: '系统初始化完成',
+        createTime: new Date().toISOString(),
+        equipmentId: '',
+        formattedTime: this.formatDate(new Date().toISOString())
       };
-    });
+      this.setData({
+        recentActivities: [testActivity]
+      });
+    }
+  },
+
+  // 格式化日期（修复iOS兼容性）
+  formatDate(dateString) {
+    // 替换所有的 "-" 为 "/"，解决iOS兼容性问题
+    const iosCompatibleDate = dateString.replace(/-/g, '/');
+    const date = new Date(iosCompatibleDate);
     
-    this.setData({ recentActivities: formattedActivities });
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      return '无效日期';
+    }
+    
+    return `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   },
 
-  // 跳转到器材列表
-  goToEquipmentList: function(e) {
-    const status = e.currentTarget.dataset.status;
-    wx.switchTab({
-      url: `/pages/manage/manage?status=${status}`
-    });
+  // 活动记录点击跳转详情
+  goToDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) {
+      wx.showToast({
+        title: '无法获取器材信息',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 检查器材是否存在于正常列表
+    const app = getApp();
+    const equipmentList = app.getEquipmentList();
+    const equipmentExists = equipmentList.some(item => item.id === id);
+    
+    if (equipmentExists) {
+      // 使用安全导航跳转到正常详情页
+      safeNavigate(`/pages/equipmentDetail/equipmentDetail?id=${id}`);
+    } else {
+      // 检查是否在回收站
+      const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
+      const isInRecycle = deletedList.some(item => item.id === id);
+      
+      if (isInRecycle) {
+        // 使用安全导航跳转到回收站状态的详情页
+        safeNavigate(`/pages/equipmentDetail/equipmentDetail?id=${id}&fromRecycle=true`);
+      } else {
+        wx.showToast({
+          title: '该器材不存在或已被彻底删除',
+          icon: 'none'
+        });
+      }
+    }
   },
 
-  // 切换操作菜单
-  toggleMenu: function() {
+  // 跳转到器材列表页并应用筛选
+  goToManage(e) {
+    const status = e.currentTarget.dataset.status || 'all';
+    const app = getApp();
+    // 使用全局变量传递筛选状态
+    app.globalData.filterStatus = status;
+    // 跳转到TabBar页面
+    safeNavigate('/pages/manage/manage');
+  },
+
+  // 切换底部菜单
+  toggleMenu() {
     if (this.data.isAnimating) return;
     
-    this.setData({ isAnimating: true });
     const isOpen = this.data.isMenuOpen;
+    this.setData({
+      isAnimating: true
+    });
     
-    this.setData({ isMenuOpen: !isOpen });
-    
-    // 动画结束后更新状态
     setTimeout(() => {
-      this.setData({ isAnimating: false });
+      this.setData({
+        isMenuOpen: !isOpen,
+        isAnimating: false
+      });
     }, 300);
   },
 
   // 跳转到添加页面
-  goToAdd: function() {
-    wx.switchTab({ url: '/pages/add/add' });
-    this.setData({ isMenuOpen: false });
+  goToAddPage() {
+    this.setData({
+      isMenuOpen: false
+    });
+    safeNavigate('/pages/add/add');
   },
 
-  // 扫码
-  scanCode: function() {
+  // 跳转到批量添加页面
+  goToBatchAdd() {
+    this.setData({
+      isMenuOpen: false
+    });
+    safeNavigate('/pages/batchAdd/batchAdd');
+  },
+
+  // 扫码功能
+  scanCode() {
+    this.setData({
+      isMenuOpen: false
+    });
     wx.scanCode({
       success: (res) => {
-        // 扫码成功后的处理逻辑
-        wx.showToast({ title: '扫码成功' });
-        // 可以根据扫码结果跳转到相应页面
-      },
-      fail: (err) => {
-        wx.showToast({ title: '扫码失败', icon: 'none' });
+        safeNavigate(`/pages/add/add?scanCode=${encodeURIComponent(res.result)}`);
       }
     });
-    this.setData({ isMenuOpen: false });
   },
 
-  // 跳转到二维码生成页面
-  goToQrcodeGenerator: function() {
-    wx.switchTab({ url: '/pages/qrcodeGenerator/qrcodeGenerator' });
-    this.setData({ isMenuOpen: false });
+  // 跳转到借还记录页面
+  goToBorrowRecord() {
+    safeNavigate('/pages/borrowRecord/borrowRecord');
   },
 
-  // 跳转到活动详情
-  goToActivityDetail: function(e) {
-    const equipmentId = e.currentTarget.dataset.equipmentid;
-    wx.switchTab({
-      url: `/pages/equipmentDetail/equipmentDetail?id=${equipmentId}`
-    });
+  // 跳转到回收站
+  goToRecycleBin() {
+    safeNavigate('/pages/recycleBin/recycleBin');
+  },
+
+  // 跳转到我的页面
+  goToMine() {
+    safeNavigate('/pages/mine/mine');
   }
 })
-    
