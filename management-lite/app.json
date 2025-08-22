@@ -24,21 +24,23 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
-        
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
       },
       {
         "pagePath": "pages/manage/manage",
-        "text": "管理"
-        
+        "text": "管理",
+        "iconPath": "images/manage.png",
+        "selectedIconPath": "images/manage-active.png"
       },
       {
         "pagePath": "pages/mine/mine",
-        "text": "我的"
-        
+        "text": "我的",
+        "iconPath": "images/mine.png",
+        "selectedIconPath": "images/mine-active.png"
       }
     ]
   },
-  "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "sitemapLocation": "sitemap.json"
 }
