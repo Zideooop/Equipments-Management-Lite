@@ -10,7 +10,7 @@ Page({
       status: '在库',
       remarks: ''
     },
-    statusOptions: ['在库', '借出']
+    statusOptions: ['在库', '出库']
   },
 
   onLoad(options) {

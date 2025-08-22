@@ -2,19 +2,39 @@
   "miniprogramRoot": "./",
   "projectname": "器材管理系统",
   "description": "器材管理系统小程序",
-  "appid": "touristappid",
+  "appid": "wxb0056508f50c8c3b",
   "setting": {
     "urlCheck": true,
     "es6": true,
     "postcss": true,
     "minified": true,
     "newFeature": true,
-    "nodeModules": true  
+    "nodeModules": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "compileType": "miniprogram",
   "libVersion": "2.23.4",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "npm": {
     "moduleCommonJs": true,
@@ -27,6 +47,7 @@
     ]
   },
   "cloudfunctionRoot": "cloudfunctions/",
-  "cloudEnv": "cloudbase-5gx4izq3da5eda5e"
+  "cloudEnv": "cloudbase-5gx4izq3da5eda5e",
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }
-    

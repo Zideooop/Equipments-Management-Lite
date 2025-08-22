@@ -27,7 +27,7 @@ Page({
 
   // 跳转到登录页
   goToLogin() {
-    wx.navigateTo({ url: '/pages/login/login' });
+    wx.switchTab({ url: '/pages/login/login' });
   },
 
   // 跳转到个人资料页
@@ -40,14 +40,14 @@ Page({
 
   // 跳转到回收站
   goToRecycleBin() {
-    wx.navigateTo({ url: '/pages/recycleBin/recycleBin' });
+    wx.switchTab({ url: '/pages/recycleBin/recycleBin' });
   },
 
   // 跳转到关于页面
   goToAbout() {
     wx.showModal({
       title: '关于器材管理系统',
-      content: '版本: v1.0.0\n\n这是一个简单实用的器材管理系统，支持器材的添加、管理、借出和归还等功能。',
+      content: '版本: v1.0.0\n\n这是一个简单实用的器材管理系统，支持器材的添加、管理、出库和入库等功能。',
       showCancel: false
     });
   },

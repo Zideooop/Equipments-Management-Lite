@@ -73,7 +73,7 @@ Page({
   // 跳转到器材详情
   goToDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
+    wx.switchTab({
       url: `/pages/equipmentDetail/equipmentDetail?id=${id}`
     });
   }

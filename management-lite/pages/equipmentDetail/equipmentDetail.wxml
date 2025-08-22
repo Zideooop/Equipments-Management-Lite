@@ -1,72 +1,94 @@
 <view class="container">
   <view wx:if="{{loading}}" class="loading">
-    <view style="width: 30px; height: 30px; border: 3px solid #eee; border-top-color: #1677ff; border-radius: 50%; animation: spin 1s linear infinite;"></view>
     <view class="loading-text">加载中...</view>
   </view>
   
-  <view wx:else>
-    <view wx:if="{{!equipment}}" class="empty-state">
-      <view>未找到该器材</view>
-      <view class="btn btn-secondary" bindtap="goBack" style="margin-top: 16px;">返回</view>
+  <view wx:else class="detail-container">
+    <view class="detail-item">
+      <view class="detail-label">器材名称</view>
+      <view class="detail-value">{{equipment.name}}</view>
     </view>
     
-    <view wx:else>
-      <view class="detail-item">
-        <view class="detail-label">器材名称</view>
-        <view class="detail-value">{{equipment.name}}</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">器材类型</view>
-        <view class="detail-value">{{equipment.type}}</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">规格型号</view>
-        <view class="detail-value">{{equipment.specification || '无'}}</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">数量</view>
-        <view class="detail-value">{{equipment.quantity}} 件</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">存放位置</view>
-        <view class="detail-value">{{equipment.location || '未设置'}}</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">状态</view>
-        <view class="detail-value">
-          <view class="tag {{equipment.status === '在库' ? 'tag-success' : 'tag-warning'}}">
-            {{equipment.status}}
-          </view>
+    <view class="detail-item">
+      <view class="detail-label">类型</view>
+      <view class="detail-value">{{equipment.type}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">规格</view>
+      <view class="detail-value">{{equipment.specification}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">数量</view>
+      <view class="detail-value">{{equipment.quantity}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">位置</view>
+      <view class="detail-value">{{equipment.location}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">状态</view>
+      <view class="detail-value">
+        <view class="tag {{equipment.status === '在库' ? 'tag-success' : 'tag-warning'}}">
+          {{equipment.status}}
         </view>
       </view>
+    </view>
+    
+    <view class="detail-item" wx:if="{{equipment.status === '借出'}}">
+      <view class="detail-label">借用人</view>
+      <view class="detail-value">{{equipment.borrower || '未记录'}}</view>
+    </view>
+    
+    <view class="detail-item" wx:if="{{equipment.status === '借出'}}">
+      <view class="detail-label">借出时间</view>
+      <view class="detail-value">{{equipment.borrowTime || '未记录'}}</view>
+    </view>
+    
+    <view class="detail-item" wx:if="{{equipment.status === '借出'}}">
+      <view class="detail-label">预计归还</view>
+      <view class="detail-value">{{equipment.returnTime || '未记录'}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">备注</view>
+      <view class="detail-value">{{equipment.remarks || '无'}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">创建时间</view>
+      <view class="detail-value">{{formatDate(equipment.createTime)}}</view>
+    </view>
+    
+    <view class="detail-item">
+      <view class="detail-label">最后更新</view>
+      <view class="detail-value">{{formatDate(equipment.updateTime)}}</view>
+    </view>
+
+    <view class="bottom-btn-group">
+      <button 
+        class="btn btn-secondary" 
+        bindtap="editEquipment"
+      >
+        编辑
+      </button>
       
-      <view class="detail-item">
-        <view class="detail-label">备注</view>
-        <view class="detail-value">{{equipment.remarks || '无'}}</view>
-      </view>
+      <button 
+        class="btn {{equipment.status === '在库' ? 'btn-warning' : 'btn-success'}}" 
+        bindtap="{{equipment.status === '在库' ? 'lendEquipment' : 'returnEquipment'}}"
+      >
+        {{equipment.status === '在库' ? '借出' : '归还'}}
+      </button>
       
-      <view class="detail-item">
-        <view class="detail-label">创建时间</view>
-        <view class="detail-value">{{formatDate(equipment.createTime)}}</view>
-      </view>
-      
-      <view class="detail-item">
-        <view class="detail-label">最后更新</view>
-        <view class="detail-value">{{formatDate(equipment.updateTime)}}</view>
-      </view>
-      
-      <view class="bottom-btn-group">
-        <view class="btn btn-secondary" bindtap="editEquipment">编辑</view>
-        <view class="btn {{equipment.status === '在库' ? 'tag-warning' : 'tag-success'}}" bindtap="toggleStatus">
-          {{equipment.status === '在库' ? '标记为借出' : '标记为在库'}}
-        </view>
-        <view class="btn btn-danger" bindtap="deleteEquipment">删除</view>
-      </view>
+      <button 
+        class="btn btn-danger" 
+        bindtap="deleteEquipment"
+      >
+        删除
+      </button>
     </view>
   </view>
 </view>

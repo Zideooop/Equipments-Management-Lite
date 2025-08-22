@@ -28,11 +28,11 @@
         在库
       </view>
       <view 
-        class="tag {{currentStatus === '借出' ? 'tag-success' : ''}}"
+        class="tag {{currentStatus === '出库' ? 'tag-success' : ''}}"
         bindtap="setFilter"
-        data-status="借出"
+        data-status="出库"
       >
-        借出
+        出库
       </view>
     </view>
   </view>

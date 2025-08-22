@@ -1,10 +1,10 @@
 // app.js
 App({
   onLaunch() {
-    // 初始化本地存储结构
-    this.initStorageStructure();
+    // 初始化本地存储
+    this.initStorage();
     
-    // 检查是否已登录
+    // 尝试从本地存储获取用户信息
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
       this.globalData.userInfo = userInfo;
@@ -14,26 +14,26 @@ App({
     if (wx.cloud) {
       wx.cloud.init({
         traceUser: true,
-        env: 'your-cloud-env-id' // 替换为你的云环境ID
+        env: this.globalData.cloudEnv
       });
     }
   },
 
-  initStorageStructure() {
-    // 初始化器材列表
-    if (!wx.getStorageSync('equipmentList')) {
-      wx.setStorageSync('equipmentList', []);
-    }
+  globalData: {
+    userInfo: null,
+    cloudEnv: 'your-cloud-env-id', // 替换为你的云环境ID
+    equipmentTypes: ['办公设备', '实验仪器', '体育器材', '教学用具', '其他']
+  },
+
+  // 初始化本地存储
+  initStorage() {
+    const equipmentList = wx.getStorageSync('equipmentList');
+    const deletedEquipmentList = wx.getStorageSync('deletedEquipmentList');
+    const activityLog = wx.getStorageSync('activityLog');
     
-    // 初始化回收站
-    if (!wx.getStorageSync('deletedEquipmentList')) {
-      wx.setStorageSync('deletedEquipmentList', []);
-    }
-    
-    // 初始化活动记录
-    if (!wx.getStorageSync('activityLog')) {
-      wx.setStorageSync('activityLog', []);
-    }
+    if (!equipmentList) wx.setStorageSync('equipmentList', []);
+    if (!deletedEquipmentList) wx.setStorageSync('deletedEquipmentList', []);
+    if (!activityLog) wx.setStorageSync('activityLog', []);
   },
 
   // 获取器材列表
@@ -51,94 +51,88 @@ App({
       return { success: false, message: validation.message };
     }
     
-    let equipmentList = this.getEquipmentList();
+    const equipmentList = wx.getStorageSync('equipmentList') || [];
     const index = equipmentList.findIndex(item => item.id === equipment.id);
     
+    // 判断是新增还是更新
     if (index > -1) {
       // 更新现有器材
-      equipmentList[index] = equipment;
+      equipmentList[index] = { ...equipmentList[index], ...equipment, updateTime: new Date().toISOString() };
     } else {
       // 添加新器材
       equipmentList.push(equipment);
       
-      // 记录活动
-      this.logActivity({
-        id: Date.now().toString(),
+      // 记录活动日志
+      this.addActivityLog({
         type: '添加',
+        content: `新增器材：${equipment.name}`,
         equipmentId: equipment.id,
-        equipmentName: equipment.name,
-        content: `添加了新器材: ${equipment.name}`,
-        createTime: new Date().toISOString()
+        equipmentName: equipment.name
       });
     }
     
+    // 保存到本地存储
     wx.setStorageSync('equipmentList', equipmentList);
     return { success: true, equipment };
   },
 
-  // 标记器材为已删除
+  // 标记器材为已删除（移至回收站）
   markAsDeleted(equipmentId) {
-    let equipmentList = this.getEquipmentList();
-    const equipment = equipmentList.find(item => item.id === equipmentId);
+    const equipmentList = wx.getStorageSync('equipmentList') || [];
+    const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
     
-    if (!equipment) {
+    // 查找器材
+    const index = equipmentList.findIndex(item => item.id === equipmentId);
+    if (index === -1) {
       return { success: false, message: '未找到该器材' };
     }
     
-    // 从器材列表中移除
-    equipmentList = equipmentList.filter(item => item.id !== equipmentId);
-    wx.setStorageSync('equipmentList', equipmentList);
+    // 移至回收站
+    const deletedItem = equipmentList.splice(index, 1)[0];
+    deletedItem.deletedTime = new Date().toISOString();
+    deletedList.push(deletedItem);
     
-    // 添加到回收站
-    let deletedList = wx.getStorageSync('deletedEquipmentList') || [];
-    deletedList.push({
-      ...equipment,
-      deleteTime: new Date().toISOString(),
-      isDeleted: true
-    });
+    // 保存更改
+    wx.setStorageSync('equipmentList', equipmentList);
     wx.setStorageSync('deletedEquipmentList', deletedList);
     
-    // 记录活动
-    this.logActivity({
-      id: Date.now().toString(),
+    // 记录活动日志
+    this.addActivityLog({
       type: '删除',
-      equipmentId: equipment.id,
-      equipmentName: equipment.name,
-      content: `将器材 ${equipment.name} 移至回收站`,
-      createTime: new Date().toISOString()
+      content: `删除器材：${deletedItem.name}`,
+      equipmentId: deletedItem.id,
+      equipmentName: deletedItem.name
     });
     
     return { success: true };
   },
 
-  // 恢复删除的器材
+  // 从回收站恢复器材
   restoreEquipment(equipmentId) {
-    let deletedList = wx.getStorageSync('deletedEquipmentList') || [];
-    const equipment = deletedList.find(item => item.id === equipmentId);
+    const equipmentList = wx.getStorageSync('equipmentList') || [];
+    const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
     
-    if (!equipment) {
+    // 查找被删除的器材
+    const index = deletedList.findIndex(item => item.id === equipmentId);
+    if (index === -1) {
       return { success: false, message: '未找到该器材' };
     }
     
-    // 从回收站移除
-    deletedList = deletedList.filter(item => item.id !== equipmentId);
+    // 恢复器材
+    const restoredItem = deletedList.splice(index, 1)[0];
+    delete restoredItem.deletedTime; // 移除删除时间标记
+    equipmentList.push(restoredItem);
+    
+    // 保存更改
+    wx.setStorageSync('equipmentList', equipmentList);
     wx.setStorageSync('deletedEquipmentList', deletedList);
     
-    // 添加回器材列表
-    let equipmentList = this.getEquipmentList();
-    const restoredEquipment = { ...equipment, isDeleted: false };
-    delete restoredEquipment.deleteTime;
-    equipmentList.push(restoredEquipment);
-    wx.setStorageSync('equipmentList', equipmentList);
-    
-    // 记录活动
-    this.logActivity({
-      id: Date.now().toString(),
+    // 记录活动日志
+    this.addActivityLog({
       type: '恢复',
-      equipmentId: equipment.id,
-      equipmentName: equipment.name,
-      content: `从回收站恢复了器材 ${equipment.name}`,
-      createTime: new Date().toISOString()
+      content: `恢复器材：${restoredItem.name}`,
+      equipmentId: restoredItem.id,
+      equipmentName: restoredItem.name
     });
     
     return { success: true };
@@ -146,65 +140,102 @@ App({
 
   // 永久删除器材
   permanentlyDelete(equipmentId) {
-    let deletedList = wx.getStorageSync('deletedEquipmentList') || [];
-    const equipment = deletedList.find(item => item.id === equipmentId);
+    const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
     
-    if (!equipment) {
+    // 查找被删除的器材
+    const index = deletedList.findIndex(item => item.id === equipmentId);
+    if (index === -1) {
       return { success: false, message: '未找到该器材' };
     }
     
-    // 从回收站永久删除
-    deletedList = deletedList.filter(item => item.id !== equipmentId);
+    // 永久删除
+    const deletedItem = deletedList.splice(index, 1)[0];
+    
+    // 保存更改
     wx.setStorageSync('deletedEquipmentList', deletedList);
     
-    // 记录活动
-    this.logActivity({
-      id: Date.now().toString(),
+    // 记录活动日志
+    this.addActivityLog({
       type: '永久删除',
-      equipmentId: equipment.id,
-      equipmentName: equipment.name,
-      content: `永久删除了器材 ${equipment.name}`,
-      createTime: new Date().toISOString()
+      content: `永久删除器材：${deletedItem.name}`,
+      equipmentId: deletedItem.id,
+      equipmentName: deletedItem.name
     });
     
     return { success: true };
   },
 
-  // 记录活动日志
-  logActivity(activity) {
-    let activityLog = wx.getStorageSync('activityLog') || [];
-    activityLog.unshift(activity); // 添加到最前面
-    // 限制日志数量为100条
-    if (activityLog.length > 100) {
-      activityLog = activityLog.slice(0, 100);
-    }
+  // 添加活动日志
+  addActivityLog(logData) {
+    const activityLog = wx.getStorageSync('activityLog') || [];
+    const newLog = {
+      id: Date.now().toString(),
+      ...logData,
+      time: new Date().toISOString(),
+      formattedTime: this.formatDateTime(new Date())
+    };
+    
+    activityLog.unshift(newLog); // 添加到最前面
     wx.setStorageSync('activityLog', activityLog);
+    return newLog;
   },
 
   // 获取活动日志
-  getActivityLog() {
-    return wx.getStorageSync('activityLog') || [];
+  getActivityLog(limit = 10) {
+    const activityLog = wx.getStorageSync('activityLog') || [];
+    return limit ? activityLog.slice(0, limit) : activityLog;
   },
 
-  // 数据同步
+  // 格式化日期时间
+  formatDateTime(date) {
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  },
+
+  // 同步数据到云端
   async syncData() {
-    if (!wx.cloud) {
-      return { success: false, message: '当前环境不支持云同步' };
-    }
-    
     try {
-      // 这里是简化版同步逻辑，实际项目中应实现完整的云端同步
-      return { success: true, pushed: 0, pulled: 0, message: '同步完成' };
-    } catch (err) {
-      return { success: false, message: err.message || '同步失败' };
-    }
-  },
-
-  globalData: {
-    userInfo: null,
-    equipmentCache: {
-      list: [],
-      deletedList: []
+      // 检查是否支持云函数
+      if (!wx.cloud) {
+        return { success: false, message: '当前环境不支持云函数' };
+      }
+      
+      // 获取本地数据
+      const localEquipments = this.getEquipmentList();
+      const localLogs = this.getActivityLog();
+      
+      // 调用云函数同步数据
+      const result = await wx.cloud.callFunction({
+        name: 'syncEquipmentData',
+        data: {
+          equipments: localEquipments,
+          logs: localLogs,
+          lastSyncTime: wx.getStorageSync('lastSyncTime') || ''
+        }
+      });
+      
+      if (result.result.success) {
+        // 保存同步时间
+        const now = new Date().toISOString();
+        wx.setStorageSync('lastSyncTime', now);
+        
+        // 如果有新数据，更新本地存储
+        if (result.result.cloudData) {
+          wx.setStorageSync('equipmentList', result.result.cloudData.equipments);
+          wx.setStorageSync('activityLog', result.result.cloudData.logs);
+        }
+        
+        return {
+          success: true,
+          pushed: result.result.pushedCount,
+          pulled: result.result.pulledCount,
+          message: '同步完成'
+        };
+      } else {
+        return { success: false, message: result.result.message || '同步失败' };
+      }
+    } catch (error) {
+      console.error('同步失败:', error);
+      return { success: false, message: '同步失败，请检查网络' };
     }
   }
 })

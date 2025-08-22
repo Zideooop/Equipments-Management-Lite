@@ -22,6 +22,13 @@ class Equipment {
     this.status = data.status || '在库';
     this.remarks = data.remarks || '';
     
+    // 借用相关属性
+    this.borrower = data.borrower || '';
+    this.contact = data.contact || '';
+    this.borrowTime = data.borrowTime || '';
+    this.returnTime = data.returnTime || '';
+    this.returnActualTime = data.returnActualTime || '';
+    
     // 时间属性
     this.createTime = data.createTime || new Date().toISOString();
     this.updateTime = data.updateTime || new Date().toISOString();

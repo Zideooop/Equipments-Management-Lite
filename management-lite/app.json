@@ -8,7 +8,8 @@
     "pages/recycleBin/recycleBin",
     "pages/login/login",
     "pages/batchAdd/batchAdd",
-    "pages/qrcodeGenerator/qrcodeGenerator"
+    "pages/qrcodeGenerator/qrcodeGenerator",
+    "pages/borrowRecord/borrowRecord"
   ],
   "window": {
     "navigationBarTitleText": "器材管理系统",

@@ -1,52 +1,70 @@
 <view class="container">
-  <!-- 欢迎信息 -->
-  <view class="card">
-    <view class="title" style="margin-bottom: 8px;">
-      {{userInfo ? '欢迎回来，' + userInfo.nickName : '请登录以使用完整功能'}}
+  <!-- 欢迎信息区域 -->
+  <view class="welcome-section">
+    <view class="welcome-text">
+      欢迎回来，{{userName || '管理员'}}
     </view>
-    <view style="padding: 0 16px 8px; color: #666;">
-      今日是 {{currentDate}}，共管理 {{totalEquipments}} 件器材
+    <view class="welcome-subtext">
+      今天是 {{currentDate}}，祝您工作顺利！
     </view>
   </view>
 
-  <!-- 统计卡片 -->
-  <view class="stats-grid">
-    <view class="stat-card" bindtap="goToManage" data-status="all">
-      <view class="stat-value">{{totalEquipments}}</view>
+  <!-- 顶部统计卡片 -->
+  <view class="stats-container">
+    <view class="stat-card total" bindtap="goToEquipmentList" data-status="all">
+      <view class="stat-number">{{totalEquipments}}</view>
       <view class="stat-label">总器材数</view>
     </view>
-    <view class="stat-card" bindtap="goToManage" data-status="在库">
-      <view class="stat-value">{{availableEquipments}}</view>
+    <view class="stat-card available" bindtap="goToEquipmentList" data-status="在库">
+      <view class="stat-number">{{availableEquipments}}</view>
       <view class="stat-label">可用器材</view>
     </view>
-    <view class="stat-card" bindtap="goToManage" data-status="借出">
-      <view class="stat-value">{{borrowedEquipments}}</view>
+    <view class="stat-card borrowed" bindtap="goToEquipmentList" data-status="借出">
+      <view class="stat-number">{{borrowedEquipments}}</view>
       <view class="stat-label">已借出</view>
     </view>
   </view>
 
   <!-- 最近动态 -->
-  <view style="padding: 0 16px;">
-    <view class="title">最近动态</view>
-  </view>
-  
-  <view class="list">
-    <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToDetail" data-id="{{item.equipmentId}}">
-      <view class="activity-icon activity-icon-{{item.type === '添加' ? 'add' : (item.type === '借出' ? 'lend' : (item.type === '归还' ? 'return' : 'delete'))}}">
-        {{item.type === '添加' ? '+' : (item.type === '借出' ? '借' : (item.type === '归还' ? '还' : '删'))}}
+  <view class="section">
+    <view class="section-title">最近动态</view>
+    <view class="activity-list">
+      <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToActivityDetail" data-equipmentid="{{item.equipmentId}}" data-equipmentname="{{item.equipmentName}}" data-id="{{item.id}}">
+        <view class="activity-icon {{item.type === '借出' ? 'lend' : (item.type === '归还' ? 'return' : 'add')}}">
+          <text>{{item.type === '借出' ? '借' : (item.type === '归还' ? '还' : '新')}}</text>
+        </view>
+        <view class="activity-content">
+          <view class="activity-text">{{item.content}}</view>
+          <view class="activity-time">{{item.formattedTime}}</view>
+        </view>
       </view>
-      <view class="activity-content">
-        <view class="activity-text">{{item.content}}</view>
-        <view class="activity-time">{{item.formattedTime}}</view>
+      <view wx:if="{{recentActivities.length === 0}}" class="no-activity">
+        <view class="empty-icon">📋</view>
+        <view class="empty-text">暂无操作记录</view>
+        <view class="empty-hint">添加或借出器材后将显示记录</view>
       </view>
-    </view>
-    
-    <view wx:if="{{recentActivities.length === 0}}" class="empty-state">
-      <view>暂无操作记录</view>
     </view>
   </view>
 
-  <!-- 浮动操作按钮 -->
-  <view class="fab" bindtap="showActionSheet">+</view>
+  <!-- 底部操作按钮 -->
+  <view class="action-button" bindtap="toggleMenu">
+    <view class="button-icon">+</view>
+  </view>
+
+  <!-- 操作菜单 -->
+  <view class="action-menu {{isMenuOpen ? 'open' : ''}}">
+    <view class="menu-item" bindtap="goToAdd">
+      <view class="menu-icon">1</view>
+      <view class="menu-text">添加器材</view>
+    </view>
+    <view class="menu-item" bindtap="scanCode">
+      <view class="menu-icon">2</view>
+      <view class="menu-text">扫码入库/出库</view>
+    </view>
+    <view class="menu-item" bindtap="goToQrcodeGenerator">
+      <view class="menu-icon">3</view>
+      <view class="menu-text">生成二维码</view>
+    </view>
+  </view>
 </view>
     
