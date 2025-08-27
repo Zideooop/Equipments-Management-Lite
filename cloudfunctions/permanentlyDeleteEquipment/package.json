@@ -1,7 +1,0 @@
-{
-  "name": "permanentlyDeleteEquipment",
-  "version": "1.0.0",
-  "dependencies": {
-    "wx-server-sdk": "~2.4.0"
-  }
-}
