@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="title">批量添加器材</view>
+  
+  <view class="form-group">
+    <view class="form-label">器材类型</view>
+    <input 
+      class="form-control" 
+      placeholder="例如：办公设备、实验仪器" 
+      value="{{equipmentType}}"
+      bindinput="onTypeInput"
+    />
+  </view>
+  
+  <view class="form-group">
+    <view class="form-label">存放位置</view>
+    <input 
+      class="form-control" 
+      placeholder="例如：301教室、实验楼202" 
+      value="{{equipmentLocation}}"
+      bindinput="onLocationInput"
+    />
+  </view>
+  
+  <view class="form-group">
+    <view class="form-label">器材列表</view>
+    <textarea 
+      class="form-control" 
+      placeholder="请按格式输入，每行一项：名称,规格,数量（例如：电脑,联想ThinkPad,2 投影仪,明基W1120,1）" 
+      value="{{equipmentListText}}"
+      bindinput="onListInput"
+      style="height: 200px;"
+    />
+    <view style="font-size: 12px; color: #666; margin-top: 8px;">
+      格式说明：每行一项，使用英文逗号分隔，依次为名称、规格、数量（数量可省略，默认为1）
+    </view>
+  </view>
+  
+  <view class="form-group">
+    <view class="form-label">备注（选填）</view>
+    <input 
+      class="form-control" 
+      placeholder="请输入备注信息" 
+      value="{{equipmentRemarks}}"
+      bindinput="onRemarksInput"
+    />
+  </view>
+  
+  <view class="subtitle">预览（共{{validCount}}条有效数据）</view>
+  <view class="list" wx:if="{{previewList.length > 0}}">
+    <view class="list-item" wx:for="{{previewList}}" wx:key="index">
+      <view class="list-item-content">
+        <view class="list-item-title {{item.invalid ? 'text-danger' : ''}}">
+          {{item.name}} {{item.invalid ? '(格式错误)' : ''}}
+        </view>
+        <view class="list-item-desc">
+          {{item.specification}} | 数量: {{item.quantity}}
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="bottom-btn-group">
+    <button class="btn btn-secondary" bindtap="cancel">取消</button>
+    <button class="btn btn-primary" bindtap="saveBatch" wx:if="{{hasValidItems}}">
+      批量添加（{{validCount}}条）
+    </button>
+    <button class="btn btn-primary" disabled wx:else>批量添加</button>
+  </view>
+</view>
+    

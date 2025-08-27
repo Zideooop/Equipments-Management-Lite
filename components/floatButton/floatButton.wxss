@@ -1,0 +1,105 @@
+/* 悬浮按钮样式 */
+.float-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 30rpx;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background-color: #1677ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.4);
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.float-btn .btn-icon {
+  color: white;
+  font-size: 70rpx;
+  line-height: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 展开状态 */
+.float-btn.open {
+  background-color: #f53f3f;
+  transform: rotate(45deg);
+}
+
+/* 点击效果 */
+.float-btn.btn-hover {
+  transform: scale(0.95);
+}
+
+.float-btn.open.btn-hover {
+  transform: scale(0.95) rotate(45deg);
+}
+
+/* 菜单容器 */
+.menu-container {
+  position: fixed;
+  right: 40rpx;
+  bottom: 160rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20rpx;
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 菜单展开状态 */
+.menu-container.menu-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 菜单项 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 60rpx;
+  padding: 18rpx 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  transform: translateY(20rpx);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-container.menu-open .menu-item {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 菜单项图标 */
+.menu-item .menu-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: #f0f5ff;
+  color: #1677ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  margin-right: 20rpx;
+}
+
+/* 菜单项文本 */
+.menu-item .menu-text {
+  color: #333;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 点击效果 */
+.menu-item:active {
+  transform: scale(0.96) translateY(0);
+  background-color: #f5f5f5;
+}
+    

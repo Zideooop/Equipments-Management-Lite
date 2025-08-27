@@ -1,0 +1,8 @@
+<view class="action-sheet-mask" wx:if="{{show}}" bindtap="onMaskTap"></view>
+<view class="action-sheet" wx:if="{{show}}" animation="{{animation}}">
+  <view class="action-sheet-item" wx:for="{{items}}" wx:key="index" 
+        data-index="{{index}}" bindtap="onItemTap">
+    {{item}}
+  </view>
+  <view class="action-sheet-cancel" bindtap="onMaskTap">取消</view>
+</view>
