@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="login-box">
+    <view class="title">管理员登录</view>
+    
+    <view class="input-group">
+      <view class="input-label">管理员密码</view>
+      <input 
+        class="input-field" 
+        type="password" 
+        placeholder="请输入管理员密码" 
+        value="{{adminPwd}}"
+        bindinput="onPwdInput"
+      />
+    </view>
+    
+    <button 
+      class="login-btn" 
+      bindtap="handleLogin"
+      disabled="{{isLoading}}"
+    >
+      {{isLoading ? '登录中...' : '登录'}}
+    </button>
+    
+    <view class="back-link" bindtap="goBack">
+      返回普通登录
+    </view>
+  </view>
+</view>

@@ -1,0 +1,84 @@
+<view class="container">
+  <view class="page-title">批量批量添加器材</view>
+  
+  <view class="tips">
+    <view class="tips-text">格式说明：每行一条数据，用英文逗号分隔</view>
+    <view class="format">格式：名称,类型,型号,数量,位置,状态</view>
+    <view class="example">例如：&#10;办公电脑,电脑,联想ThinkPad,5,3楼办公室,在库&#10;激光打印机,打印机,HP M1005,2,文印室,在库</view>
+  </view>
+  
+  <textarea 
+    placeholder="请按照上述格式输入数据"
+    value="{{textContent}}"
+    bindinput="onTextInput"
+    class="batch-input"
+  />
+  
+  <view class="btn-group">
+    <view class="btn btn-primary" bindtap="previewData">
+      预览数据
+    </view>
+    <view class="btn btn-secondary" bindtap="clearText">
+      清空
+    </view>
+  </view>
+  
+  <view class="preview-section" wx:if="{{showPreview}}">
+    <view class="preview-title">数据预览</view>
+    <view class="preview-list">
+      <view class="preview-header">
+        <view class="col col-name">名称</view>
+        <view class="col col-type">类型</view>
+        <view class="col col-model">型号</view>
+        <view class="col col-quantity">数量</view>
+        <view class="col col-location">位置</view>
+        <view class="col col-status">状态</view>
+      </view>
+      
+      <view 
+        class="preview-item" 
+        wx:for="{{previewList}}" 
+        wx:key="index"
+        wx:for-item="item"
+        data-index="{{index}}"
+      >
+        <view class="col col-name {{item.invalid ? 'invalid' : ''}}">
+          {{item.name || '缺失'}}
+        </view>
+        <view class="col col-type {{item.invalid ? 'invalid' : ''}}">
+          {{item.type || '缺失'}}
+        </view>
+        <view class="col col-model {{item.invalid ? 'invalid' : ''}}">
+          {{item.model || '无'}}
+        </view>
+        <view class="col col-quantity {{item.invalid ? 'invalid' : ''}}">
+          {{item.quantity || '缺失'}}
+        </view>
+        <view class="col col-location {{item.invalid ? 'invalid' : ''}}">
+          {{item.location || '无'}}
+        </view>
+        <view class="col col-status {{item.invalid ? 'invalid' : ''}}">
+          {{item.status || '在库'}}
+        </view>
+      </view>
+    </view>
+    
+    <view class="invalid-hint" wx:if="{{hasInvalid}}">
+      <icon type="warn" color="#fa3534" size="16"/>
+      <text>标红数据格式有误，请检查修正</text>
+    </view>
+    
+    <view class="batch-actions">
+      <view class="btn btn-success" bindtap="saveBatch" wx:if="{{!isSaving}}">
+        确认添加（{{validCount}}条有效）
+      </view>
+      <view class="btn btn-loading" wx:else>
+        <view class="loading-spinner"></view>
+        <text>添加中...</text>
+      </view>
+      <view class="btn btn-cancel" bindtap="hidePreview">
+        返回修改
+      </view>
+    </view>
+  </view>
+</view>
