@@ -1,0 +1,198 @@
+<view class="container">
+  <!-- 顶部导航栏 - 移除右上角编辑按钮 -->
+  <view class="custom-nav">
+    <view class="nav-back" bindtap="navigateBack">
+      <icon type="left" size="20" color="#333"></icon>
+    </view>
+    <view class="nav-title">器材详情</view>
+    <view class="nav-right">
+      <!-- 移除原编辑按钮 -->
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 器材信息卡片 -->
+  <view wx:else class="equipment-container">
+    <!-- 顶部状态卡片 -->
+    <view class="status-card">
+      <view class="status-card-header">
+        <view class="equipment-name">{{equipment.name}}</view>
+        <view class="equipment-type">{{equipment.type}}</view>
+      </view>
+      
+      <view class="status-info">
+        <view class="status-tag {{equipment.status === '在库' ? 'status-available' : 'status-borrowed'}}">
+          {{equipment.status}}
+        </view>
+        <view class="equipment-id">ID: {{equipment.id}}</view>
+      </view>
+    </view>
+
+    <!-- 新增编辑按钮区域 - 位置醒目且易于操作 -->
+    <view wx:if="{{!fromRecycle}}" class="edit-button-container">
+      <button class="edit-button" bindtap="goToEdit">
+        <icon type="edit" size="24" color="#fff"></icon>
+        <text>编辑器材信息</text>
+      </button>
+    </view>
+
+    <!-- 基本信息卡片 -->
+    <view class="info-card">
+      <view class="info-card-title">基本信息</view>
+      <view class="info-grid">
+        <view class="info-item">
+          <view class="info-label">规格</view>
+          <view class="info-value">{{equipment.specification || '-'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">数量</view>
+          <view class="info-value">{{equipment.quantity}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">存放位置</view>
+          <view class="info-value">{{equipment.location || '-'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">备注</view>
+          <view class="info-value">{{equipment.remarks || '-'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 借用信息卡片 (仅当借出状态显示) -->
+    <!-- 借用信息卡片中添加超期样式 -->
+<view class="info-list-item">
+  <view class="info-label">预计归还</view>
+  <view class="info-value light-text {{isOverdue ? 'overdue' : ''}}">
+    {{equipment.returnTimeFormatted}}
+    <text wx:if="{{isOverdue}}" class="overdue-tag">已超期</text>
+  </view>
+</view>
+    <view class="info-card" wx:if="{{equipment.status === '借出' && !fromRecycle}}">
+      <view class="info-card-title">借用信息</view>
+      <view class="info-list">
+        <view class="info-list-item">
+          <view class="info-label">借用人</view>
+          <view class="info-value">{{equipment.borrower}}</view>
+        </view>
+        <view class="info-list-item">
+          <view class="info-label">联系方式</view>
+          <view class="info-value">{{equipment.contact}}</view>
+        </view>
+        <view class="info-list-item">
+          <view class="info-label">借出时间</view>
+          <view class="info-value light-text">{{equipment.borrowTimeFormatted}}</view>
+        </view>
+        <view class="info-list-item">
+          <view class="info-label">预计归还</view>
+          <view class="info-value light-text">{{equipment.returnTimeFormatted}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 删除信息卡片 (仅当从回收站进入时显示) -->
+    <view class="info-card light-card" wx:if="{{fromRecycle}}">
+      <view class="info-card-title">删除信息</view>
+      <view class="info-list">
+        <view class="info-list-item">
+          <view class="info-label">删除时间</view>
+          <view class="info-value light-text">{{equipment.deleteTimeFormatted}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间信息卡片 (弱化展示) -->
+    <view class="info-card light-card">
+      <view class="info-card-title">记录信息</view>
+      <view class="info-list">
+        <view class="info-list-item">
+          <view class="info-label">创建时间</view>
+          <view class="info-value light-text">{{equipment.createTimeFormatted}}</view>
+        </view>
+        <view class="info-list-item">
+          <view class="info-label">最后更新</view>
+          <view class="info-value light-text">{{equipment.updateTimeFormatted}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮区 -->
+    <view class="action-buttons">
+      <view wx:if="{{!fromRecycle}}">
+        <button 
+          class="main-action-btn {{equipment.status === '在库' ? 'btn-borrow' : 'btn-return'}}" 
+          bindtap="{{equipment.status === '在库' ? 'openBorrowDialog' : 'handleReturn'}}"
+        >
+          {{equipment.status === '在库' ? '借出器材' : '归还器材'}}
+        </button>
+      </view>
+      
+      <view wx:if="{{fromRecycle}}">
+        <button 
+          class="main-action-btn btn-restore" 
+          bindtap="restoreEquipment"
+        >
+          一键还原
+        </button>
+      </view>
+      
+      <view class="secondary-actions">
+        <button class="secondary-action-btn btn-delete" bindtap="deleteToRecycle">
+          {{fromRecycle ? '永久删除' : '删除器材'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 借出对话框 (底部弹出式) -->
+  <view class="dialog-mask" wx:if="{{showBorrowDialog}}" bindtap="closeBorrowDialog"></view>
+  <view class="borrow-dialog" wx:if="{{showBorrowDialog}}">
+    <view class="dialog-header">
+      <view class="dialog-title">借出器材</view>
+      <view class="dialog-close" bindtap="closeBorrowDialog">×</view>
+    </view>
+    
+    <view class="dialog-content">
+      <view class="form-group">
+        <view class="form-label">借用人</view>
+        <input 
+          class="form-control" 
+          placeholder="请输入借用人姓名" 
+          value="{{borrowInfo.borrower}}"
+          bindinput="inputBorrowInfo"
+          data-field="borrower"
+        />
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">联系方式</view>
+        <input 
+          class="form-control" 
+          placeholder="请输入联系电话" 
+          value="{{borrowInfo.contact}}"
+          bindinput="inputBorrowInfo"
+          data-field="contact"
+        />
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">预计归还时间</view>
+        <picker mode="date" value="{{borrowInfo.returnTime}}" start="{{today}}" bindchange="onDateChange">
+          <view class="form-control picker-view">
+            {{borrowInfo.returnTime || '请选择预计归还日期'}}
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <view class="dialog-footer">
+      <button class="dialog-btn cancel-btn" bindtap="closeBorrowDialog">取消</button>
+      <button class="dialog-btn confirm-btn" bindtap="handleBorrow">确认借出</button>
+    </view>
+  </view>
+</view>
