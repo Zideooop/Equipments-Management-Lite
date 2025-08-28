@@ -1,0 +1,85 @@
+<view class="container">
+  <!-- 系统图标 -->
+  <view class="system-logo">
+    <image src="/images/page/page-logo.png" mode="widthFix" class="logo-img" />
+  </view>
+  
+  <!-- 页面标题 -->
+  <view class="system-title">用户注册</view>
+  
+  <!-- 表单卡片 -->
+  <view class="card">
+    <!-- 用户名输入 -->
+    <view class="form-group">
+      <view class="form-row">
+        <image src="/images/function/func-username.png" mode="widthFix" class="input-icon" />
+        <input 
+          placeholder="请设置用户名（至少4位）" 
+          value="{{username}}"
+          bindinput="onInput"
+          data-field="username"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 密码输入 -->
+    <view class="form-group">
+      <view class="form-row">
+        <image src="/images/function/func-password.png" mode="widthFix" class="input-icon" />
+        <input 
+          type="password"
+          placeholder="请设置密码（至少6位）" 
+          value="{{password}}"
+          bindinput="onInput"
+          data-field="password"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 确认密码输入 -->
+    <view class="form-group">
+      <view class="form-row">
+        <image src="/images/function/func-password.png" mode="widthFix" class="input-icon" />
+        <input 
+          type="password"
+          placeholder="请再次输入密码" 
+          value="{{confirmPassword}}"
+          bindinput="onInput"
+          data-field="confirmPassword"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 注册按钮 -->
+    <view class="form-group">
+      <view 
+        class="btn btn-primary" 
+        bindtap="register"
+        wx:if="{{!isLoading}}"
+      >
+        注册账号
+      </view>
+      <view 
+        class="btn btn-loading" 
+        wx:else
+      >
+        <view class="loading-spinner"></view>
+        <text>注册中...</text>
+      </view>
+    </view>
+    
+    <!-- 错误提示 -->
+    <view wx:if="{{showError}}" class="error-message">
+      <image src="/images/status/status-error.png" mode="widthFix" class="error-icon" />
+      <text>{{errorMsg}}</text>
+    </view>
+  </view>
+  
+  <!-- 返回登录链接 -->
+  <view class="register-link" bindtap="goToLogin">
+    已有账号？返回登录
+  </view>
+</view>

@@ -1,0 +1,96 @@
+<view class="container">
+  <!-- 欢迎区域 -->
+  <view class="welcome-section">
+    <view class="welcome-content">
+      <view class="welcome-text">{{welcomeText}}</view>
+      <view class="welcome-subtext">{{welcomeSubtext}}</view>
+
+      <!-- 新增登录按钮 -->
+      <button 
+        wx:if="{{isGuest}}" 
+        class="login-btn" 
+        bindtap="showLoginGuide"
+      >
+        登录/注册 →
+      </button>
+    </view> <!-- 修复：将此闭合标签移到正确位置 -->
+    
+    <view class="welcome-extra">
+      <!-- 替换天气图标为用户头像，添加游客头像判断 -->
+      <image 
+        src="{{userInfo.isGuest ? '/images/function/func-guest.png' : (userInfo.avatarUrl || '/images/page/page-profile.png')}}" 
+        mode="widthFix" 
+        class="user-avatar" 
+      />
+    </view>
+  </view> <!-- 欢迎区域闭合标签 -->
+
+  <!-- 统计卡片 -->
+  <view class="stats-container">
+    <!-- 器材总数卡片 -->
+    <view class="stat-card total" bindtap="goToManage" data-status="all">
+      <image src="/images/status/status-all.png" mode="widthFix" class="stat-icon" />
+      <view class="stat-value">{{totalEquipments}}</view>
+      <view class="stat-label">总器材数</view>
+    </view>
+    
+    <view class="stat-card available" bindtap="goToManage" data-status="在库">
+      <image src="/images/status/status-available.png" mode="widthFix" class="stat-icon" />
+      <view class="stat-value">{{availableEquipments}}</view>
+      <view class="stat-label">可用器材</view>
+    </view>
+    
+    <view class="stat-card borrowed" bindtap="goToManage" data-status="借出">
+      <image src="/images/status/status-borrowed.png" mode="widthFix" class="stat-icon" />
+      <view class="stat-value">{{borrowedEquipments}}</view>
+      <view class="stat-label">已借出</view>
+    </view>
+  </view>
+
+  <!-- 最近活动 -->
+  <view class="section">
+    <view class="section-title">
+      <image src="/images/function/func-log.png" mode="widthFix" class="section-icon" />
+      操作记录
+    </view>
+    <view class="activity-list">
+      <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToDetail" data-id="{{item.equipmentId}}">
+        <view class="activity-icon">
+          <!-- 统一使用操作记录图标 -->
+          <image 
+            src="/images/function/log.png" 
+            mode="widthFix" 
+            class="operation-icon"
+          />
+        </view>
+        <view class="activity-content">
+          <view class="activity-text">{{item.content}}</view>
+          <view class="activity-time">{{item.formattedTime}}</view>
+        </view>
+      </view>
+      <view wx:if="{{recentActivities.length === 0}}" class="empty-activity">
+        <!-- 空状态使用指定图标 -->
+        <image src="/images/function/record-no.png" mode="widthFix" class="empty-icon" />
+        <text>暂无操作记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 悬浮按钮 -->
+  <view class="fab {{fabOpen ? 'open' : ''}}" bindtap="toggleFab">
+    <image src="/images/status/add-white.png" mode="widthFix" class="fab-icon" />
+  </view>
+  
+  <!-- 悬浮菜单 -->
+  <view class="fab-menu {{fabOpen ? 'show' : ''}}">
+    <view class="fab-item" bindtap="handleFabAction" data-action="scan">
+      <image src="/images/function/func-scan.png" mode="widthFix" class="menu-item-icon" />
+      <text>扫码入库</text>
+    </view>
+    <view class="fab-item" bindtap="handleFabAction" data-action="sync">
+      <image src="/images/function/func-sync.png" mode="widthFix" class="menu-item-icon" />
+      <text>同步数据</text>
+    </view>
+  </view>
+</view>
+    

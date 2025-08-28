@@ -1,0 +1,279 @@
+/* 回收站页面样式 */
+.container {
+  padding: 20rpx;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  box-sizing: border-box;
+}
+
+/* 页面标题区域 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.header-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  background-color: white;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #666;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.action-btn:active {
+  background-color: #f5f5f5;
+  transform: scale(0.98);
+}
+
+.action-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+}
+
+/* 搜索栏样式 */
+.search-bar {
+  margin-bottom: 20rpx;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  height: 72rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  color: #999;
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: #333;
+  border: none;
+  outline: none;
+  background-color: transparent;
+}
+
+/* 批量操作栏 */
+.batch-operation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background-color: white;
+  border-radius: 8rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.selected-count {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.batch-btns {
+  display: flex;
+  gap: 16rpx;
+}
+
+.batch-btn {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+  transition: all 0.2s;
+}
+
+.batch-btn:active {
+  transform: scale(0.98);
+}
+
+.batch-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+.restore-btn {
+  background-color: #e8f4fd;
+  color: #3498db;
+}
+
+.delete-btn {
+  background-color: #fff5f5;
+  color: #f53f3f;
+}
+
+/* 回收站列表 */
+.recycle-list {
+  background-color: white;
+  border-radius: 8rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.recycle-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 20rpx;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.recycle-item:last-child {
+  border-bottom: none;
+}
+
+.recycle-item:active {
+  background-color: #fafafa;
+}
+
+/* 选择框 */
+.item-selector {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+}
+
+.selector-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 器材信息 */
+.item-info {
+  flex: 1;
+  min-width: 0; /* 解决文本溢出问题 */
+}
+
+.item-name {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+  font-size: 26rpx;
+}
+
+.item-type {
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+.delete-time {
+  color: #999;
+  white-space: nowrap;
+}
+
+.item-location {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.location-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+/* 操作按钮 */
+.item-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx;
+  color: #666;
+  font-size: 24rpx;
+  transition: all 0.2s;
+}
+
+.action:active {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+.restore {
+  color: #3498db;
+}
+
+.delete {
+  color: #f53f3f;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  color: #999;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  margin-bottom: 10rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #bbb;
+}
+    

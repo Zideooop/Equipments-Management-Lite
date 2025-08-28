@@ -1,0 +1,109 @@
+<view class="container">
+  <!-- 系统图标 -->
+  <view class="system-logo">
+    <image src="/images/page/page-logo.png" mode="widthFix" class="logo-img" />
+  </view>
+  
+  <!-- 页面标题 -->
+  <view class="system-title">器材管理系统</view>
+  
+  <!-- 表单卡片 -->
+  <view class="card">
+    <!-- 用户名输入 -->
+    <view class="form-group">
+      <view class="form-row">
+        <image src="/images/function/func-username.png" mode="widthFix" class="input-icon" />
+        <input 
+          placeholder="请输入用户名" 
+          value="{{username}}"
+          bindinput="onInput"
+          data-field="username"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 密码输入 -->
+    <view class="form-group">
+      <view class="form-row">
+        <image src="/images/function/func-password.png" mode="widthFix" class="input-icon" />
+        <input 
+          type="password"
+          placeholder="请输入密码" 
+          value="{{password}}"
+          bindinput="onInput"
+          data-field="password"
+          class="form-input"
+        />
+      </view>
+    </view>
+    
+    <!-- 记住密码和忘记密码 -->
+    <view class="form-actions">
+      <view class="remember-password">
+        <checkbox 
+          checked="{{rememberPassword}}" 
+          bindchange="onRememberChange"
+          color="#007aff"
+        />
+        <text>记住密码</text>
+      </view>
+      <navigator url="/pages/forgotPassword/forgotPassword" class="forgot-password">
+        忘记密码?
+      </navigator>
+    </view>
+    
+    <!-- 登录按钮 -->
+    <view class="form-group">
+      <view 
+        class="btn btn-primary" 
+        bindtap="login"
+        wx:if="{{!isLoading}}"
+      >
+        登录
+      </view>
+      <view 
+        class="btn btn-loading" 
+        wx:else
+      >
+        <view class="loading-spinner"></view>
+        <text>登录中...</text>
+      </view>
+    </view>
+    
+    <!-- 微信快捷登录 -->
+    <button 
+  class="wechat-login" 
+  open-type="getUserInfo" 
+  bindgetuserinfo="onWechatUserInfo"
+>
+  <image src="/images/function/func-wechat.png" mode="widthFix" class="wechat-icon" />
+  <text>微信快捷登录</text>
+</button>
+     <!-- 新增注册入口 -->
+  <view class="register-link" bindtap="goToRegister">
+    还没有账号？立即注册
+  </view>
+    <!-- 错误提示 -->
+    <view wx:if="{{showError}}" class="error-message">
+      <image src="/images/status/status-error.png" mode="widthFix" class="error-icon" />
+      <text>{{errorMsg}}</text>
+    </view>
+  </view>
+</view>
+
+<view class="debug-entries">
+  <!-- 游客登录按钮 -->
+  <view class="btn btn-secondary" bindtap="visitorLogin">
+    游客登录（调试用）
+  </view>
+  
+  <!-- 管理员入口（隐藏式，长按显示） -->
+  <view 
+    class="admin-entry" 
+    bindlongpress="showAdminLogin"
+    wx:if="{{showDebug}}"
+  >
+    管理员入口
+  </view>
+</view>

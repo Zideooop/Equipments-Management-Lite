@@ -1,0 +1,114 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="title">回收站</text>
+    <view class="header-actions">
+      <view 
+        class="action-btn clear-btn" 
+        bindtap="showClearConfirm"
+        wx:if="{{recycleList.length > 0}}"
+      >
+        <image src="/images/function/func-trash.png" mode="widthFix" class="action-icon" />
+        <text>清空</text>
+      </view>
+      <view 
+        class="action-btn select-btn" 
+        bindtap="toggleSelectAll"
+        wx:if="{{recycleList.length > 0}}"
+      >
+        <image 
+          src="{{isSelectAll ? '/images/function/func-checked.png' : '/images/function/func-unchecked.png'}}" 
+          mode="widthFix" 
+          class="action-icon" 
+        />
+        <text>{{isSelectAll ? '取消全选' : '全选'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input">
+      <image src="/images/function/func-search.png" mode="widthFix" class="search-icon" />
+      <input 
+        placeholder="搜索已删除的器材..." 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        class="input"
+      />
+    </view>
+  </view>
+
+  <!-- 批量操作栏 (选中项>0时显示) -->
+  <view class="batch-operation" wx:if="{{selectedCount > 0}}">
+    <view class="selected-count">已选择 {{selectedCount}} 项</view>
+    <view class="batch-btns">
+      <view class="batch-btn restore-btn" bindtap="batchRestore">
+        <image src="/images/function/func-restore.png" mode="widthFix" class="batch-icon" />
+        <text>恢复选中</text>
+      </view>
+      <view class="batch-btn delete-btn" bindtap="showBatchDeleteConfirm">
+        <image src="/images/function/func-delete.png" mode="widthFix" class="batch-icon" />
+        <text>永久删除</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 回收站列表 -->
+  <view class="recycle-list">
+    <view 
+      wx:for="{{filteredList}}" 
+      wx:key="id" 
+      class="recycle-item"
+      data-id="{{item.id}}"
+    >
+      <!-- 选择框 -->
+      <view class="item-selector" bindtap="toggleSelect" data-id="{{item.id}}">
+        <image 
+          src="{{isSelected(item.id) ? '/images/function/func-checked.png' : '/images/function/func-unchecked.png'}}" 
+          mode="widthFix" 
+          class="selector-icon" 
+        />
+      </view>
+      
+      <!-- 器材信息 -->
+      <view class="item-info">
+        <view class="item-name">{{item.name}}</view>
+        <view class="item-meta">
+          <text class="item-type">{{item.type}} {{item.specification}}</text>
+          <text class="delete-time">删除于 {{formatTime(item.deleteTime)}}</text>
+        </view>
+        <view class="item-location">
+          <image src="/images/status/status-location.png" mode="widthFix" class="location-icon" />
+          <text>{{item.location || '未设置位置'}}</text>
+        </view>
+      </view>
+      
+      <!-- 操作按钮 -->
+      <view class="item-actions">
+        <view class="action restore" bindtap="restoreItem" data-id="{{item.id}}">
+          <image src="/images/function/func-restore.png" mode="widthFix" class="action-icon" />
+          <text>恢复</text>
+        </view>
+        <view class="action delete" bindtap="showDeleteConfirm" data-id="{{item.id}}">
+          <image src="/images/function/func-delete.png" mode="widthFix" class="action-icon" />
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空列表状态 -->
+    <view class="empty-state" wx:if="{{filteredList.length === 0 && recycleList.length > 0}}">
+      <image src="/images/status/status-empty.png" mode="widthFix" class="empty-icon" />
+      <text class="empty-text">没有找到匹配的内容</text>
+    </view>
+    
+    <!-- 完全空状态 -->
+    <view class="empty-state" wx:if="{{recycleList.length === 0}}">
+      <image src="/images/status/trash-empty.png" mode="widthFix" class="empty-icon" />
+      <text class="empty-text">回收站是空的</text>
+      <text class="empty-desc">删除的器材会暂时保存在这里</text>
+    </view>
+  </view>
+</view>
+    

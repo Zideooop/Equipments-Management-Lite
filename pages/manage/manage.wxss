@@ -1,0 +1,295 @@
+/* 基础容器样式 */
+.container {
+  padding: 20rpx;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 基础卡片样式 */
+.base-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 搜索栏样式 */
+.search-bar .search-input {
+  display: flex;
+  align-items: center;
+  background-color: #f5f7fa;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  height: 72rpx;
+}
+
+.search-bar .search-text {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: #333;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* 状态筛选样式 */
+.status-filter .status-options {
+  display: flex;
+  gap: 16rpx;
+  overflow-x: auto;
+  padding-bottom: 10rpx;
+  white-space: nowrap;
+}
+
+.status-filter .status-option {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  border-radius: 60rpx;
+  font-size: 26rpx;
+  color: #666;
+  background-color: #f5f7fa;
+  transition: all 0.2s;
+}
+
+.status-filter .status-option.active {
+  background-color: #e8f4fd;
+  color: #3498db;
+}
+
+/* 器材列表容器 */
+.equipment-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 列表样式 */
+.equipment-list {
+  width: 100%;
+}
+
+/* 列表项样式 */
+.equipment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.equipment-item:last-child {
+  border-bottom: none;
+}
+
+.equipment-item:active {
+  background-color: #fafafa;
+}
+
+/* 器材信息区域 */
+.equipment-info {
+  flex: 1;
+  min-width: 0; /* 解决文本溢出问题 */
+}
+
+.list-item-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+}
+
+.equipment-name {
+  font-size: 32rpx;
+  color: #333;
+  max-width: 70%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equipment-status {
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-size: 24rpx;
+}
+
+.status-available {
+  background-color: #f0f9f4;
+  color: #2ecc71;
+}
+
+.status-borrowed {
+  background-color: #fef5f5;
+  color: #e74c3c;
+}
+
+.equipment-type {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equipment-location {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 操作按钮区域 */
+.item-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-left: 20rpx;
+}
+
+.action-icon {
+  width: 44rpx;
+  height: 44rpx;
+  transition: transform 0.2s;
+}
+
+.action-icon-hover {
+  transform: scale(0.9);
+}
+
+/* 空状态样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+  color: #999;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-action {
+  padding: 16rpx 40rpx;
+  background-color: #3498db;
+  color: white;
+  border-radius: 60rpx;
+  font-size: 28rpx;
+  transition: all 0.2s;
+}
+
+.empty-action:active {
+  transform: scale(0.95);
+  background-color: #2980b9;
+}
+
+/* 悬浮按钮样式 */
+.fab {
+  position: fixed;
+  right: 30rpx;
+  bottom: 130rpx; /* 适配tabbar高度 */
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background-color: #3498db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 15rpx rgba(52, 152, 219, 0.3);
+  z-index: 100;
+  transition: all 0.3s;
+}
+
+.fab.open {
+  transform: rotate(45deg);
+  background-color: #f53f3f;
+}
+
+.fab-hover {
+  transform: scale(1.05);
+}
+
+/* 悬浮菜单 */
+.fab-menu {
+  position: fixed;
+  right: 40rpx;
+  bottom: 240rpx;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  opacity: 0;
+  transform: translateY(20rpx);
+  pointer-events: none;
+  transition: all 0.3s;
+}
+
+.fab-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.fab-item {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 60rpx;
+  padding: 16rpx 24rpx;
+  box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.1);
+  font-size: 28rpx;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.fab-item:active {
+  transform: scale(0.95);
+}
+
+/* 文本样式工具类 */
+.font-xs { font-size: 24rpx; }
+.font-sm { font-size: 26rpx; }
+.font-md { font-size: 32rpx; }
+.font-weight-bold { font-weight: 600; }
+.text-secondary { color: #666; }
+.text-tertiary { color: #999; }
+
+/* 图标工具类 */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-xs { width: 36rpx; height: 36rpx; }
+.icon-sm { width: 44rpx; height: 44rpx; }
+.icon-md { width: 50rpx; height: 50rpx; }
