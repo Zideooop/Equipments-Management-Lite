@@ -1,0 +1,621 @@
+/**app.wxss**/
+/* 全局变量定义 - 新增 */
+:root {
+  /* 主色调 */
+  --primary-color: #3498db;
+  --primary-light: #ebf5fb;
+  --primary-dark: #2980b9;
+  
+  /* 功能色 */
+  --success-color: #07c160;
+  --success-light: #eaffea;
+  --warning-color: #ff7d00;
+  --warning-light: #fff7e6;
+  --danger-color: #f53f3f;
+  --danger-light: #fff5f5;
+  
+  /* 中性色 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #eeeeee;
+  
+  /* 尺寸变量 */
+  --border-radius-sm: 12rpx;
+  --border-radius: 20rpx;
+  --border-radius-lg: 30rpx;
+  --border-radius-full: 50%;
+  
+  /* 阴影效果 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  --shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  
+  /* 间距变量 */
+  --spacing-xs: 10rpx;
+  --spacing-sm: 20rpx;
+  --spacing-md: 30rpx;
+  --spacing-lg: 40rpx;
+  
+  /* 过渡动画 */
+  --transition-fast: all 0.2s ease;
+  --transition-normal: all 0.3s ease;
+}
+
+/* 基础样式优化 */
+.container {
+  min-height: 100%;
+  background-color: var(--bg-secondary);
+  font-size: 32rpx;
+  line-height: 1.6;
+}
+
+/* 清除浮动 - 新增工具类 */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* 文本对齐工具类 - 新增 */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* 欢迎区域样式优化 */
+.welcome-section {
+  padding: var(--spacing-lg) var(--spacing-md);
+  background-color: var(--bg-primary);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--border-radius); /* 新增圆角 */
+  box-shadow: var(--shadow-sm); /* 新增轻微阴影 */
+}
+
+.welcome-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-primary);
+}
+
+.welcome-subtext {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+/* 统计容器样式优化 */
+.stats-container {
+  display: flex;
+  padding: 0 var(--spacing-md);
+  background-color: var(--bg-primary);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--border-radius); /* 新增圆角 */
+  box-shadow: var(--shadow-sm); /* 新增轻微阴影 */
+  overflow: hidden; /* 防止内部元素溢出圆角 */
+}
+
+.stat-card {
+  flex: 1;
+  padding: var(--spacing-lg) 0;
+  text-align: center;
+  border-right: 1px solid var(--bg-tertiary);
+}
+
+.stat-card:last-child {
+  border-right: none;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  transition: var(--transition-fast); /* 新增过渡效果 */
+}
+
+.stat-card:active .stat-value {
+  transform: scale(1.05); /* 点击时轻微放大 */
+}
+
+.stat-label {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.stat-card.available .stat-value {
+  color: var(--success-color);
+}
+
+.stat-card.borrowed .stat-value {
+  color: var(--warning-color);
+}
+
+/* 区块样式优化 */
+.section {
+  background-color: var(--bg-primary);
+  margin-bottom: var(--spacing-sm);
+  padding: 0 var(--spacing-md);
+  border-radius: var(--border-radius); /* 新增圆角 */
+  box-shadow: var(--shadow-sm); /* 新增轻微阴影 */
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+  color: var(--text-primary);
+  display: flex; /* 支持标题右侧添加内容 */
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 操作记录列表优化 */
+.activity-list {
+  padding: var(--spacing-sm) 0;
+}
+
+.activity-item {
+  display: flex;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--bg-secondary);
+  transition: var(--transition-fast); /* 新增过渡效果 */
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item:active {
+  background-color: var(--bg-secondary); /* 点击背景变化 */
+}
+
+/* 操作图标优化 */
+.activity-icon {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: var(--border-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #fff;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm); /* 新增阴影增强立体感 */
+}
+
+.activity-icon.add {
+  background-color: var(--success-color);
+}
+
+.activity-icon.update {
+  background-color: var(--warning-color);
+}
+
+.activity-icon.delete { /* 新增删除类型图标样式 */
+  background-color: var(--danger-color);
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-text {
+  font-size: 30rpx;
+  margin-bottom: 5rpx;
+  color: var(--text-primary);
+}
+
+.activity-time {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+}
+
+.empty-activity {
+  padding: 60rpx 0;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 28rpx;
+}
+
+/* 搜索栏优化 */
+.search-bar {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius); /* 新增圆角 */
+  margin-bottom: var(--spacing-sm); /* 新增底部间距 */
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-full);
+  padding: 15rpx 25rpx;
+  transition: var(--transition-fast); /* 新增过渡效果 */
+}
+
+.search-input:focus-within {
+  box-shadow: var(--shadow); /* 获取焦点时显示阴影 */
+}
+
+/* 搜索图标样式优化 */
+.search-icon {
+  width: 64rpx;
+  height: 64rpx;
+  margin-right: 15rpx;
+  color: var(--text-tertiary);
+  transition: var(--transition-fast);
+}
+
+.search-icon:active {
+  color: var(--primary-color);
+  transform: scale(0.9); /* 点击缩放效果 */
+}
+
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  color: var(--text-primary);
+  background-color: transparent; /* 确保背景透明 */
+}
+
+.input::placeholder {
+  color: var(--text-tertiary); /* 统一占位符颜色 */
+}
+
+/* 状态筛选优化 */
+.status-filter {
+  display: flex;
+  padding: 0 var(--spacing-md);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--bg-tertiary);
+  overflow-x: auto; /* 支持横向滚动 */
+  white-space: nowrap; /* 防止换行 */
+}
+
+.status-item {
+  flex: 1;
+  min-width: 120rpx; /* 最小宽度，确保文字不换行 */
+  text-align: center;
+  padding: 25rpx 0;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  position: relative;
+  transition: var(--transition-fast);
+}
+
+.status-item.active {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.status-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 60%;
+  height: 4rpx;
+  background-color: var(--primary-color);
+  border-radius: 2rpx; /* 圆角处理 */
+}
+
+.status-item:active:not(.active) {
+  color: var(--primary-dark); /* 非选中状态点击效果 */
+  background-color: var(--primary-light);
+}
+
+/* 器材列表优化 */
+.equipment-list {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--bg-primary);
+}
+
+.equipment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 0;
+  border-bottom: 1px solid var(--bg-secondary);
+  transition: var(--transition-fast);
+}
+
+.equipment-item:last-child {
+  border-bottom: none;
+}
+
+.equipment-item:active {
+  background-color: var(--bg-secondary); /* 点击反馈 */
+  transform: translateX(5rpx); /* 轻微位移效果 */
+}
+
+.equipment-info {
+  flex: 1;
+}
+
+.equipment-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 5rpx;
+  color: var(--text-primary);
+}
+
+.equipment-type {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-bottom: 5rpx;
+}
+
+.equipment-location {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+}
+
+/* 位置图标样式优化 */
+.equipment-location-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 8rpx;
+  color: var(--text-tertiary);
+  transition: var(--transition-fast);
+}
+
+.equipment-location-icon:active {
+  color: var(--primary-color);
+  transform: scale(0.9);
+}
+
+/* 状态标签优化 */
+.equipment-status {
+  padding: 8rpx 20rpx;
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  transition: var(--transition-fast);
+}
+
+/* 状态图标样式优化 */
+.status-icon {
+  width: 56rpx;
+  height: 56rpx;
+  transition: var(--transition-fast);
+}
+
+.status-icon:active {
+  transform: scale(0.9);
+}
+
+.equipment-status.available {
+  background-color: var(--success-light);
+  color: var(--success-color);
+}
+
+.equipment-status.borrowed {
+  background-color: var(--warning-light);
+  color: var(--warning-color);
+}
+
+.empty-list {
+  padding: 100rpx 0;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 28rpx;
+}
+
+/* 悬浮按钮优化 */
+.fab {
+  position: fixed;
+  right: var(--spacing-md);
+  bottom: calc(80rpx + env(safe-area-inset-bottom)); /* 适配底部安全区域 */
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--border-radius-full);
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  transition: var(--transition-normal);
+}
+
+/* 悬浮按钮图标优化 */
+.fab-icon {
+  width: 60rpx;
+  height: 60rpx;
+  transition: var(--transition-normal);
+}
+
+/* 点击后状态优化 */
+.fab.open {
+  transform: rotate(45deg) scale(0.95); /* 稍小的缩放比例更自然 */
+  background-color: var(--danger-color);
+  box-shadow: 0 6rpx 15rpx rgba(245, 63, 63, 0.3); /* 危险色专属阴影 */
+}
+
+/* 悬浮菜单优化 */
+.fab-menu {
+  position: fixed;
+  right: calc(40rpx + env(safe-area-inset-right)); /* 适配右侧安全区域 */
+  bottom: calc(190rpx + env(safe-area-inset-bottom)); /* 适配底部安全区域 */
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  opacity: 0;
+  transform: translateY(20rpx);
+  pointer-events: none;
+  transition: var(--transition-normal);
+}
+
+/* 菜单显示状态优化 */
+.fab-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* 菜单项动画优化 */
+.fab-menu.show .fab-item {
+  animation: menuItemFadeIn 0.3s forwards;
+  opacity: 0;
+}
+
+.fab-menu.show .fab-item:nth-child(1) { animation-delay: 0.1s; }
+.fab-menu.show .fab-item:nth-child(2) { animation-delay: 0.2s; }
+.fab-menu.show .fab-item:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes menuItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 菜单项样式优化 */
+.fab-item {
+  width: 180rpx;
+  padding: 20rpx;
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  box-shadow: var(--shadow);
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+}
+
+.fab-item:active {
+  background-color: var(--primary-light);
+  transform: scale(0.95);
+}
+
+/* 菜单项图标优化 */
+.menu-item-icon {
+  width: 80rpx;
+  height: 80rpx;
+  transition: var(--transition-fast);
+}
+
+/* 通用图标交互优化 */
+.search-icon, .equipment-location-icon, .status-icon, .fab-icon, .menu-item-icon,
+.back-icon, .close-icon, .edit-icon, .delete-icon, .sync-icon, .scan-icon {
+  transition: var(--transition-fast);
+}
+
+/* 图标点击效果统一 */
+.search-icon:active, .equipment-location-icon:active, .status-icon:active, 
+.menu-item-icon:active, .back-icon:active, .close-icon:active, 
+.edit-icon:active, .delete-icon:active, .sync-icon:active, .scan-icon:active {
+  transform: scale(0.9);
+}
+
+/* 返回图标样式优化 */
+.back-icon {
+  width: 72rpx;
+  height: 72rpx;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+}
+
+.back-icon:active {
+  color: var(--primary-color);
+}
+
+/* 关闭图标样式优化 */
+.close-icon {
+  width: 64rpx;
+  height: 64rpx;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.close-icon:active {
+  color: var(--danger-color);
+}
+
+/* 编辑图标样式优化 */
+.edit-icon {
+  width: 80rpx;
+  height: 80rpx;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.edit-icon:active {
+  color: var(--primary-color);
+}
+
+/* 删除图标样式优化 */
+.delete-icon {
+  width: 80rpx;
+  height: 80rpx;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.delete-icon:active {
+  color: var(--danger-color);
+}
+
+/* 同步图标样式优化 */
+.sync-icon {
+  width: 80rpx;
+  height: 80rpx;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.sync-icon:active {
+  color: var(--success-color);
+  animation: rotate 1s linear; /* 同步图标点击旋转动画 */
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg) scale(0.9); }
+  to { transform: rotate(360deg) scale(0.9); }
+}
+
+/* 扫码图标样式优化 */
+.scan-icon {
+  width: 80rpx;
+  height: 80rpx;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+}
+
+.scan-icon:active {
+  color: var(--primary-color);
+}
+
+/* 适配底部安全区域 - 新增 */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 适配顶部安全区域 - 新增 */
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+    

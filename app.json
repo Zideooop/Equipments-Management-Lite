@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/manage/manage",
+    "pages/mine/mine",
+    "pages/login/login", 
+    "pages/register/register", 
+    "pages/recycleBin/recycleBin", 
+    "pages/adminLogin/adminLogin", 
+    "pages/add/add", 
+    "pages/batchAdd/batchAdd",
+    "pages/equipmentDetail/equipmentDetail"
+
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "器材管理系统",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "default"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#3498db",
+    "borderStyle": "white",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "/images/tabbar/tab-home.png",
+        "selectedIconPath": "/images/tabbar/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/manage/manage",
+        "text": "管理",
+        "iconPath": "/images/tabbar/tab-manage.png",
+        "selectedIconPath": "/images/tabbar/tab-manage-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "/images/tabbar/tab-mine.png",
+        "selectedIconPath": "/images/tabbar/tab-mine-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}
