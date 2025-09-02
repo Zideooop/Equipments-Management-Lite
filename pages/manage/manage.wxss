@@ -1,248 +1,376 @@
-/* 基础容器样式 */
-.container {
-  padding: 20rpx;
-  background-color: #f5f7fa;
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-/* 基础卡片样式 */
-.base-card {
-  background-color: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-}
-
-/* 搜索栏样式 */
-.search-bar .search-input {
+/* 导航栏样式优化 */
+.navbar {
   display: flex;
   align-items: center;
-  background-color: #f5f7fa;
-  border-radius: 8rpx;
-  padding: 0 20rpx;
-  height: 72rpx;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
 }
 
-.search-bar .search-text {
-  flex: 1;
-  height: 100%;
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  width: 120rpx;
+}
+
+.nav-left {
+  justify-content: flex-start;
+}
+
+.nav-right {
+  justify-content: flex-end;
+}
+
+.nav-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 8rpx;
+}
+
+.back-text, .filter-text {
   font-size: 28rpx;
   color: #333;
-  background: transparent;
-  border: none;
-  outline: none;
 }
 
-/* 状态筛选样式 */
-.status-filter .status-options {
-  display: flex;
-  gap: 16rpx;
-  overflow-x: auto;
-  padding-bottom: 10rpx;
-  white-space: nowrap;
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  text-align: center;
 }
 
-.status-filter .status-option {
+/* 搜索框样式优化 */
+.search-container {
+  padding: 20rpx 30rpx;
+  background-color: #f5f5f5;
+}
+
+.search-box {
   display: flex;
   align-items: center;
-  padding: 12rpx 24rpx;
+  background-color: #fff;
   border-radius: 60rpx;
+  padding: 15rpx 25rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+  width: 34rpx;
+  height: 34rpx;
+  margin-right: 15rpx;
+  color: #999;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  height: 50rpx;
+  line-height: 50rpx;
+}
+
+/* 快捷筛选栏 - 新增样式 */
+.quick-filter {
+  display: flex;
+  padding: 15rpx 30rpx;
+  background-color: #fff;
+  gap: 15rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.filter-chip {
+  padding: 10rpx 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 40rpx;
   font-size: 26rpx;
   color: #666;
-  background-color: #f5f7fa;
   transition: all 0.2s;
 }
 
-.status-filter .status-option.active {
-  background-color: #e8f4fd;
-  color: #3498db;
+.filter-chip.active {
+  background-color: #3498db;
+  color: #fff;
 }
 
-/* 器材列表容器 */
-.equipment-container {
-  padding: 0;
-  overflow: hidden;
+/* 筛选面板样式优化 */
+.filter-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
 }
 
-/* 加载状态 */
-.loading-state {
+.filter-panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filter-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  padding: 120rpx 0;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
 }
 
-.loading-text {
-  margin-top: 20rpx;
-  font-size: 28rpx;
+.filter-title-main {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-close {
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-icon {
+  width: 30rpx;
+  height: 30rpx;
   color: #999;
 }
 
-/* 列表样式 */
-.equipment-list {
-  width: 100%;
+.filter-content {
+  background-color: #fff;
+  padding: 30rpx;
+  max-height: calc(100% - 180rpx);
+  overflow-y: auto;
 }
 
-/* 列表项样式 */
-.equipment-item {
+.filter-section {
+  margin-bottom: 40rpx;
+}
+
+.filter-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-left: 5rpx;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.filter-option {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 24rpx;
-  border-bottom: 1px solid #f5f5f5;
-  transition: background-color 0.2s;
-}
-
-.equipment-item:last-child {
-  border-bottom: none;
-}
-
-.equipment-item:active {
-  background-color: #fafafa;
-}
-
-/* 器材信息区域 */
-.equipment-info {
-  flex: 1;
-  min-width: 0; /* 解决文本溢出问题 */
-}
-
-.list-item-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12rpx;
-}
-
-.equipment-name {
-  font-size: 32rpx;
-  color: #333;
-  max-width: 70%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.equipment-status {
-  padding: 4rpx 12rpx;
-  border-radius: 4rpx;
-  font-size: 24rpx;
-}
-
-.status-available {
-  background-color: #f0f9f4;
-  color: #2ecc71;
-}
-
-.status-borrowed {
-  background-color: #fef5f5;
-  color: #e74c3c;
-}
-
-.equipment-type {
+  padding: 15rpx 25rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
   font-size: 26rpx;
   color: #666;
-  margin-bottom: 8rpx;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: all 0.2s;
 }
 
-.equipment-location {
-  display: flex;
-  align-items: center;
-  font-size: 24rpx;
-  color: #999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.filter-option.active {
+  background-color: #e8f4fd;
+  color: #3498db;
+  border: 1rpx solid #3498db;
 }
 
-/* 操作按钮区域 */
-.item-actions {
+.option-icon {
+  width: 30rpx;
+  height: 30rpx;
+  margin-right: 10rpx;
+}
+
+.filter-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
+  padding: 20rpx 30rpx;
+  background-color: #fff;
+  border-top: 1rpx solid #eee;
   gap: 20rpx;
-  margin-left: 20rpx;
 }
 
-.action-icon {
-  width: 44rpx;
-  height: 44rpx;
-  transition: transform 0.2s;
+.reset-btn, .confirm-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 8rpx;
+  font-size: 30rpx;
 }
 
-.action-icon-hover {
-  transform: scale(0.9);
+.reset-btn {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
 }
 
-/* 空状态样式 */
-.empty-state {
+.confirm-btn {
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+}
+
+/* 设备列表样式优化 */
+.equipment-list {
+  padding: 20rpx 30rpx;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 320rpx);
+}
+
+.loading-view {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 120rpx 0;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-indicator {
+  width: 50rpx;
+  height: 50rpx;
+  border: 5rpx solid #eee;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
   color: #999;
 }
 
 .empty-icon {
-  width: 160rpx;
-  height: 160rpx;
+  width: 120rpx;
+  height: 120rpx;
   margin-bottom: 30rpx;
   opacity: 0.6;
 }
 
 .empty-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   margin-bottom: 30rpx;
 }
 
-.empty-action {
-  padding: 16rpx 40rpx;
+.empty-btn {
   background-color: #3498db;
-  color: white;
-  border-radius: 60rpx;
+  color: #fff;
+  border: none;
+  padding: 15rpx 40rpx;
+  border-radius: 8rpx;
   font-size: 28rpx;
-  transition: all 0.2s;
 }
 
-.empty-action:active {
-  transform: scale(0.95);
-  background-color: #2980b9;
+/* 设备网格布局优化 */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340rpx, 1fr));
+  gap: 20rpx;
+}
+
+.equipment-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 25rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.equipment-status {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  padding: 5rpx 15rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.status-available {
+  background-color: #e6f7f0;
+  color: #07c160;
+}
+
+.status-borrowed {
+  background-color: #fff7e6;
+  color: #ff9800;
+}
+
+.equipment-info {
+  margin-top: 10rpx;
+}
+
+.equipment-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 15rpx;
+  padding-right: 60rpx;
+}
+
+.equipment-type, .equipment-spec, .equipment-location {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
 }
 
 /* 悬浮按钮样式 */
 .fab {
   position: fixed;
   right: 30rpx;
-  bottom: 130rpx; /* 适配tabbar高度 */
+  bottom: 80rpx;
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
   background-color: #3498db;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 6rpx 15rpx rgba(52, 152, 219, 0.3);
   z-index: 100;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fab.open {
   transform: rotate(45deg);
   background-color: #f53f3f;
+  box-shadow: 0 6rpx 15rpx rgba(245, 63, 63, 0.3);
 }
 
-.fab-hover {
-  transform: scale(1.05);
+.fab-icon {
+  width: 50rpx;
+  height: 50rpx;
 }
 
-/* 悬浮菜单 */
 .fab-menu {
   position: fixed;
   right: 40rpx;
-  bottom: 240rpx;
+  bottom: 190rpx;
   z-index: 99;
   display: flex;
   flex-direction: column;
@@ -250,46 +378,36 @@
   opacity: 0;
   transform: translateY(20rpx);
   pointer-events: none;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fab-menu.open {
+.fab-menu.show {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
 .fab-item {
-  display: flex;
-  align-items: center;
+  width: 180rpx;
+  padding: 20rpx;
   background-color: white;
-  border-radius: 60rpx;
-  padding: 16rpx 24rpx;
+  border-radius: 50rpx;
+  text-align: center;
   box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.1);
   font-size: 28rpx;
-  color: #333;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  transition: transform 0.2s;
 }
 
 .fab-item:active {
   transform: scale(0.95);
 }
 
-/* 文本样式工具类 */
-.font-xs { font-size: 24rpx; }
-.font-sm { font-size: 26rpx; }
-.font-md { font-size: 32rpx; }
-.font-weight-bold { font-weight: 600; }
-.text-secondary { color: #666; }
-.text-tertiary { color: #999; }
-
-/* 图标工具类 */
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.menu-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
-
-.icon-xs { width: 36rpx; height: 36rpx; }
-.icon-sm { width: 44rpx; height: 44rpx; }
-.icon-md { width: 50rpx; height: 50rpx; }
+    

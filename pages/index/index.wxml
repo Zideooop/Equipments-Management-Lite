@@ -5,7 +5,7 @@
       <view class="welcome-text">{{welcomeText}}</view>
       <view class="welcome-subtext">{{welcomeSubtext}}</view>
 
-      <!-- 新增登录按钮 -->
+      <!-- 登录按钮 - 仅游客显示 -->
       <button 
         wx:if="{{isGuest}}" 
         class="login-btn" 
@@ -13,17 +13,17 @@
       >
         登录/注册 →
       </button>
-    </view> <!-- 修复：将此闭合标签移到正确位置 -->
+    </view>
     
     <view class="welcome-extra">
-      <!-- 替换天气图标为用户头像，添加游客头像判断 -->
+      <!-- 用户头像显示 - 区分游客和登录用户 -->
       <image 
         src="{{userInfo.isGuest ? '/images/function/func-guest.png' : (userInfo.avatarUrl || '/images/page/page-profile.png')}}" 
         mode="widthFix" 
         class="user-avatar" 
       />
     </view>
-  </view> <!-- 欢迎区域闭合标签 -->
+  </view>
 
   <!-- 统计卡片 -->
   <view class="stats-container">
@@ -37,41 +37,49 @@
     <view class="stat-card available" bindtap="goToManage" data-status="在库">
       <image src="/images/status/status-available.png" mode="widthFix" class="stat-icon" />
       <view class="stat-value">{{availableEquipments}}</view>
-      <view class="stat-label">可用器材</view>
+      <view class="stat-label">可借器材</view>
     </view>
     
     <view class="stat-card borrowed" bindtap="goToManage" data-status="借出">
       <image src="/images/status/status-borrowed.png" mode="widthFix" class="stat-icon" />
       <view class="stat-value">{{borrowedEquipments}}</view>
-      <view class="stat-label">已借出</view>
+      <view class="stat-label">已借器材</view>
     </view>
   </view>
 
-  <!-- 最近活动 -->
-  <view class="section">
-    <view class="section-title">
-      <image src="/images/function/func-log.png" mode="widthFix" class="section-icon" />
-      操作记录
+  <!-- 最近活动记录区域 -->
+  <view class="section-title">
+    <text>最近操作记录</text>
+  </view>
+
+  <!-- 活动记录列表 -->
+  <view class="activity-list-container">
+    <view wx:if="{{recentActivities.length === 0}}" class="empty-activity">
+      <image src="/images/function/record-no.png" mode="widthFix" class="empty-activity-icon" />
+      <text>暂无操作记录</text>
     </view>
-    <view class="activity-list">
-      <view wx:for="{{recentActivities}}" wx:key="id" class="activity-item" bindtap="goToDetail" data-id="{{item.equipmentId}}">
-        <view class="activity-icon">
-          <!-- 统一使用操作记录图标 -->
-          <image 
-            src="/images/function/log.png" 
-            mode="widthFix" 
-            class="operation-icon"
-          />
+    
+    <view class="activity-list" wx:else>
+      <view 
+        class="activity-item" 
+        wx:for="{{recentActivities}}" 
+        wx:key="id"
+      >
+        <!-- 活动类型图标 -->
+        <view class="activity-icon {{_getActivityTypeStyle(item.type).className}}">
+          <image src="{{_getActivityTypeStyle(item.type).icon}}" mode="widthFix" class="activity-icon-img" />
+          <text class="action-keyword">{{_getActionKeyword(item.type)}}</text>
+          <view class="activity-badge">{{_getActivityTypeStyle(item.type).badgeText}}</view>
         </view>
+        
+        <!-- 活动内容 -->
         <view class="activity-content">
-          <view class="activity-text">{{item.content}}</view>
+          <view class="activity-text">
+            {{item.content}}
+            <text class="view-detail">点击查看详情</text>
+          </view>
           <view class="activity-time">{{item.formattedTime}}</view>
         </view>
-      </view>
-      <view wx:if="{{recentActivities.length === 0}}" class="empty-activity">
-        <!-- 空状态使用指定图标 -->
-        <image src="/images/function/record-no.png" mode="widthFix" class="empty-icon" />
-        <text>暂无操作记录</text>
       </view>
     </view>
   </view>
@@ -86,6 +94,11 @@
     <view class="fab-item" bindtap="handleFabAction" data-action="scan">
       <image src="/images/function/func-scan.png" mode="widthFix" class="menu-item-icon" />
       <text>扫码入库</text>
+    </view>
+    <!-- 新增二维码生成入口 -->
+    <view class="fab-item" bindtap="handleFabAction" data-action="qrcode">
+      <image src="/images/function/func-qrcode.png" mode="widthFix" class="menu-item-icon" />
+      <text>QR生成</text>
     </view>
     <view class="fab-item" bindtap="handleFabAction" data-action="sync">
       <image src="/images/function/func-sync.png" mode="widthFix" class="menu-item-icon" />

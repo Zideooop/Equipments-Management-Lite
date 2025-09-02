@@ -1,126 +1,169 @@
 <view class="container">
-  <!-- 搜索栏 -->
-  <view class="base-card search-bar">
-    <view class="search-input">
-      <image src="/images/function/func-search.png" mode="widthFix" class="icon icon-sm" />
+  <!-- 顶部导航栏 -->
+  <view class="navbar">
+    <view class="nav-left" bindtap="goBack">
+      <image src="/images/function/func-back.png" mode="widthFix" class="nav-icon" />
+      <view class="back-text">返回</view>
+    </view>
+    <view class="nav-title">设备管理</view>
+    <view class="nav-right" bindtap="toggleFilterPanel">
+      <image src="/images/function/func-filter.png" mode="widthFix" class="nav-icon" />
+      <view class="filter-text">筛选</view>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-container">
+    <view class="search-box">
+      <image src="/images/function/func-search.png" mode="widthFix" class="search-icon" />
       <input 
-        placeholder="搜索器材名称、类型、规格..." 
+        type="text" 
+        placeholder="搜索设备名称、型号、编号..." 
         value="{{searchKeyword}}"
         bindinput="onSearchInput"
-        class="search-text"
+        class="search-input"
       />
     </view>
   </view>
 
-  <!-- 状态筛选 -->
-  <view class="base-card status-filter">
-    <view class="status-options">
-      <view 
-        wx:for="{{statusOptions}}" 
-        wx:key="value"
-        class="status-option {{currentStatus === item.value ? 'active' : ''}}"
-        bindtap="changeStatus"
-        data-status="{{item.status}}"
-      >
-        <image 
-          src="{{item.icon}}" 
-          mode="widthFix" 
-          class="icon icon-xs"
-        />
-        {{item.text}}
-      </view>
+  <!-- 快捷筛选栏 - 新增横向筛选栏，提升可用性 -->
+  <view class="quick-filter">
+    <view 
+      class="filter-chip {{currentStatus === 'all' ? 'active' : ''}}"
+      bindtap="changeStatusFilter"
+      data-status="all"
+    >
+      全部
+    </view>
+    <view 
+      class="filter-chip {{currentStatus === '在库' ? 'active' : ''}}"
+      bindtap="changeStatusFilter"
+      data-status="在库"
+    >
+      在库
+    </view>
+    <view 
+      class="filter-chip {{currentStatus === '借出' ? 'active' : ''}}"
+      bindtap="changeStatusFilter"
+      data-status="借出"
+    >
+      借出
+    </view>
+    <view 
+      class="filter-chip {{currentType === 'system' ? 'active' : ''}}"
+      bindtap="changeTypeFilter"
+      data-type="system"
+    >
+      系统类型
+    </view>
+    <view 
+      class="filter-chip {{currentType === 'other' ? 'active' : ''}}"
+      bindtap="changeTypeFilter"
+      data-type="other"
+    >
+      其他类
     </view>
   </view>
 
-  <!-- 器材列表 -->
-  <view class="base-card equipment-container">
-    <!-- 加载状态 -->
-    <view class="loading-state" wx:if="{{isLoading}}">
-      <van-loading size="30rpx" color="#3498db" />
-      <text class="loading-text">加载中...</text>
+  <!-- 筛选面板 - 优化布局结构 -->
+  <view class="filter-panel {{filterPanelVisible ? 'visible' : ''}}">
+    <view class="filter-header">
+      <view class="filter-title-main">筛选条件</view>
+      <view class="filter-close" bindtap="toggleFilterPanel">
+        <image src="/images/function/func-close.png" mode="widthFix" class="close-icon" />
+      </view>
     </view>
-
-    <!-- 列表内容 -->
-    <view class="equipment-list" wx:if="{{!isLoading && filteredEquipmentList.length > 0}}">
-      <view wx:for="{{filteredEquipmentList}}" wx:key="id" class="base-list-item equipment-item">
-        <view class="equipment-info" bindtap="goToDetail" data-id="{{item.id}}">
-          <view class="list-item-title">
-            <view class="equipment-name font-md font-weight-bold">{{item.name}}</view>
-            <view class="equipment-status {{item.status === '在库' ? 'status-available' : 'status-borrowed'}}">
-              {{item.status}}
-            </view>
-          </view>
-          <view class="equipment-type text-secondary font-sm">{{item.type}} {{item.specification}}</view>
-          <view class="equipment-location text-tertiary font-xs">
-            <image 
-              src="/images/status/status-location.png" 
-              mode="widthFix" 
-              class="icon icon-xs"
-            />
-            {{item.location || '未设置位置'}}
+    
+    <view class="filter-content">
+      <view class="filter-section">
+        <view class="filter-title">状态筛选</view>
+        <view class="filter-options">
+          <view 
+            wx:for="{{statusOptions}}" 
+            wx:key="status"
+            class="filter-option {{currentStatus === item.status ? 'active' : ''}}"
+            bindtap="changeStatusFilter"
+            data-status="{{item.status}}"
+          >
+            <image src="{{item.icon}}" mode="widthFix" class="option-icon" />
+            <text>{{item.text}}</text>
           </view>
         </view>
-        <view class="item-actions">
-          <image 
-            src="/images/status/status-edit.png" 
-            mode="widthFix" 
-            class="icon icon-sm action-icon"
-            bindtap="handleEdit" 
-            data-id="{{item.id}}"
-            hover-class="action-icon-hover"
-          />
-          <image 
-            src="/images/status/status-delete.png" 
-            mode="widthFix" 
-            class="icon icon-sm action-icon"
-            bindtap="handleDelete" 
-            data-id="{{item.id}}"
-            hover-class="action-icon-hover"
-          />
+      </view>
+
+      <view class="filter-section">
+        <view class="filter-title">类型筛选</view>
+        <view class="filter-options">
+          <view 
+            wx:for="{{typeOptions}}" 
+            wx:key="type"
+            class="filter-option {{currentType === item.type ? 'active' : ''}}"
+            bindtap="changeTypeFilter"
+            data-type="{{item.type}}"
+          >
+            <text>{{item.text}}</text>
+          </view>
         </view>
       </view>
     </view>
     
-    <!-- 空状态优化 -->
-    <view wx:if="{{!isLoading && filteredEquipmentList.length === 0}}" class="empty-state">
-      <image 
-        src="/images/page/zanwu.png" 
-        mode="widthFix" 
-        class="empty-icon"
-      />
-      <text class="empty-text">暂无符合条件的器材</text>
-      <view class="empty-action" bindtap="handleFabAction" data-action="single">
-        <text>立即添加</text>
+    <view class="filter-footer">
+      <button class="reset-btn" bindtap="resetFilters">重置筛选</button>
+      <button class="confirm-btn" bindtap="toggleFilterPanel">确认</button>
+    </view>
+  </view>
+
+  <!-- 设备列表 - 优化网格布局 -->
+  <view class="equipment-list">
+    <view wx:if="{{isLoading}}" class="loading-view">
+      <view class="loading-indicator"></view>
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:else>
+      <view wx:if="{{filteredEquipmentList.length === 0}}" class="empty-view">
+        <image src="/images/function/equip-no.png" mode="widthFix" class="empty-icon" />
+        <text class="empty-text">暂无设备数据</text>
+        <button class="empty-btn" bindtap="goToAddPage">添加设备</button>
+      </view>
+      
+      <view wx:else class="equipment-grid">
+        <view 
+          class="equipment-card" 
+          wx:for="{{filteredEquipmentList}}" 
+          wx:key="id"
+          bindtap="goToDetail"
+          data-id="{{item.id}}"
+        >
+          <view class="equipment-status {{item.status === '在库' ? 'status-available' : 'status-borrowed'}}">
+            {{item.status}}
+          </view>
+          <view class="equipment-info">
+            <view class="equipment-name">{{item.name}}</view>
+            <view class="equipment-type">类型: {{item.type}}</view>
+            <view class="equipment-spec">规格: {{item.specification || '未填写'}}</view>
+            <view class="equipment-location">位置: {{item.location || '未设置'}}</view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- 悬浮按钮 -->
-  <view class="fab {{fabOpen ? 'open' : ''}}" bindtap="toggleFab" hover-class="fab-hover">
-    <image 
-      src="/images/status/add-white.png" 
-      mode="widthFix" 
-      class="icon icon-md"
-    />
+  <view class="fab {{fabOpen ? 'open' : ''}}" bindtap="toggleFab">
+    <image src="/images/function/func-add-white.png" mode="widthFix" class="fab-icon" />
   </view>
   
   <!-- 悬浮菜单 -->
-  <view class="fab-menu {{fabOpen ? 'open' : ''}}">
+  <view class="fab-menu {{fabOpen ? 'show' : ''}}">
     <view class="fab-item" bindtap="handleFabAction" data-action="single">
-      <image 
-        src="/images/status/single-add.png" 
-        mode="widthFix" 
-        class="icon icon-sm"
-      />
+      <image src="/images/function/func-add.png" mode="widthFix" class="menu-icon" />
       <text>单个添加</text>
     </view>
     <view class="fab-item" bindtap="handleFabAction" data-action="batch">
-      <image 
-        src="/images/status/batchadd.png" 
-        mode="widthFix" 
-        class="icon icon-sm"
-      />
+      <image src="/images/function/func-batch-add.png" mode="widthFix" class="menu-icon" />
       <text>批量添加</text>
     </view>
   </view>
 </view>
+    

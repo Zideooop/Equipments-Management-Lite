@@ -1,405 +1,370 @@
+// pages/equipmentDetail/equipmentDetail.js
 const app = getApp();
-// 修复：正确引入导航工具（路径根据实际项目结构调整）
 const { safeNavigate, safeBack } = require('../../utils/navigation.js');
-// 增强日期格式化函数（全局可用）
-const formatDate = (dateString) => {
-  if (!dateString) return '无记录';
-  
-  // 处理多种日期格式（兼容ISO和其他格式）
-  let date;
-  if (typeof dateString === 'string') {
-    // 替换分隔符，兼容iOS
-    dateString = dateString.replace(/-/g, '/').replace('T', ' ').split('.')[0];
-    date = new Date(dateString);
-  } else if (dateString instanceof Date) {
-    date = dateString;
-  }
-  
-  // 验证日期有效性
-  if (!date || isNaN(date.getTime())) {
-    return '无记录';
-  }
-  
-  return `${date.getFullYear()}年${
-    (date.getMonth() + 1).toString().padStart(2, '0')
-  }月${
-    date.getDate().toString().padStart(2, '0')
-  }日 ${
-    date.getHours().toString().padStart(2, '0')
-  }:${
-    date.getMinutes().toString().padStart(2, '0')
-  }`;
-};
 
 Page({
   data: {
     equipment: null,
     isLoading: true,
-    showBorrowDialog: false,
+    fromRecycle: false,
+    isGuest: true,
+    isAdmin: false,
+    borrowDialogVisible: false,
+    returnDialogVisible: false,
+    deleteDialogVisible: false,
     borrowInfo: {
       borrower: '',
-      contact: '',
-      returnTime: ''
-    },
-    today: '',
-    fromRecycle: false
+      borrowDate: '',
+      expectedReturnDate: '',
+      notes: ''
+    }
   },
 
   onLoad(options) {
-    if (!options) options = {};
-    
-    // 设置今天日期为默认归还日期
-    const today = new Date().toISOString().split('T')[0];
-    this.setData({ 
-      today,
-      fromRecycle: options.fromRecycle === 'true'
+    this.setData({
+      fromRecycle: options.fromRecycle === 'true',
+      // 初始化日期为今天
+      'borrowInfo.borrowDate': this.formatDate(new Date())
     });
     
-    if (options.id) {
-      this.loadEquipmentDetail(options.id, this.data.fromRecycle);
-    } else {
-      wx.showToast({ title: '参数错误', icon: 'none' });
-      setTimeout(() => safeBack(), 1500);
-    }
+  // 设置预计归还日期为7天后
+  const expectedDate = new Date();
+  expectedDate.setDate(expectedDate.getDate() + 7);
+  this.setData({
+    'borrowInfo.expectedReturnDate': this.formatDate(expectedDate)
+  });
+  
+  this.checkUserPermission();
+  this.loadEquipmentDetail(options.id);
+},
 
-    // 配置导航栏编辑按钮（仅保留此处，避免重复）
-    wx.setNavigationBarTitle({ title: '器材详情' });
-    wx.setNavigationBarColor({
-      frontColor: '#000000',
-      backgroundColor: '#ffffff'
+  // 检查用户权限
+  checkUserPermission() {
+    const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    this.setData({
+      isGuest: !userInfo || userInfo.isGuest || !userInfo.username,
+      isAdmin: userInfo.role === 'admin'
     });
-   
-  },
-
-  onShow() {
-    if (this.data.equipment?.id) {
-      this.loadEquipmentDetail(this.data.equipment.id, this.data.fromRecycle);
-    }
   },
 
   // 加载器材详情
-  loadEquipmentDetail(id, fromRecycle = false) {
-    let equipment = null;
+  loadEquipmentDetail(id) {
+    this.setData({ isLoading: true });
     
-    if (fromRecycle) {
-      const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
-      equipment = deletedList.find(item => item.id === id);
-    } else {
-      const app = getApp();
-      const equipmentList = app.getEquipmentList ? app.getEquipmentList() : [];
-      equipment = equipmentList.find(item => item.id === id);
+    try {
+      const equipmentList = this.data.fromRecycle ? 
+        app.getRecycleBin() : 
+        (app.globalData.equipmentList || wx.getStorageSync('equipmentList') || []);
       
-      if (!equipment) {
-        const deletedList = wx.getStorageSync('deletedEquipmentList') || [];
-        equipment = deletedList.find(item => item.id === id);
-        if (equipment) {
-          this.setData({ fromRecycle: true });
-        }
-      }
-    }
-    
-    if (equipment) {
-      // 格式化所有日期字段
-      const formattedEquipment = {
-        ...equipment,
-        createTimeFormatted: formatDate(equipment.createTime || equipment.addTime),
-        updateTimeFormatted: formatDate(equipment.updateTime),
-        borrowTimeFormatted: formatDate(equipment.borrowTime),
-        returnTimeFormatted: formatDate(equipment.returnTime),
-        returnActualTimeFormatted: formatDate(equipment.returnActualTime),
-        deleteTimeFormatted: formatDate(equipment.deleteTime)
-      };
+      const equipment = equipmentList.find(item => item.id === id);
       
-      this.setData({
-        equipment: formattedEquipment,
-        isLoading: false
-      });
-    } else {
-      wx.showToast({
-        title: '该器材不存在或已被彻底删除',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        this.navigateBack();
-      }, 1500);
+      if (equipment) {
+        this.setData({ equipment });
+      } else {
+        wx.showToast({ title: '未找到器材信息', icon: 'none' });
+        setTimeout(() => safeBack(), 1000);
+      }
+    } catch (error) {
+      console.error('加载器材详情失败:', error);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    } finally {
+      this.setData({ isLoading: false });
     }
-
-    const isOverdue = equipment.status === '借出' 
-    && new Date(equipment.returnTime) < new Date();
-  this.setData({ equipment, isOverdue });
-
   },
 
-  // 从回收站恢复器材
-  restoreEquipment() {
-    const { equipment } = this.data;
-    
-    wx.showModal({
-      title: '确认还原',
-      content: `确定要还原【${equipment.name}】吗？`,
-      confirmText: '还原',
-      cancelText: '取消',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true });
-          
-          try {
-            const app = getApp();
-            // 确保app方法返回Promise
-            const result = await app.restoreEquipment(equipment.id);
-            
-            wx.hideLoading();
-            
-            if (result.success) {
-              wx.showToast({ title: '还原成功', icon: 'success' });
-              // 通知首页刷新
-              this.notifyHomePageRefresh();
-              setTimeout(() => {
-                safeNavigate({ url: '/pages/manage/manage'});
-              }, 1500);
-            } else {
-              wx.showToast({ title: result.message || '还原失败', icon: 'none' });
-            }
-          } catch (error) {
-            wx.hideLoading();
-            console.error('还原失败:', error);
-            wx.showToast({ title: '还原失败，请重试', icon: 'none' });
-          }
-        }
-      }
-    });
+  // 格式化日期
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
-  // 永久删除器材
-  permanentlyDelete() {
-    const { equipment } = this.data;
-    
-    wx.showModal({
-      title: '永久删除',
-      content: `确定要永久删除【${equipment.name}】吗？此操作不可恢复。`,
-      confirmText: '永久删除',
-      cancelText: '取消',
-      confirmColor: '#f53f3f',
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true });
-          
-          try {
-            const app = getApp();
-            const result = await app.permanentlyDelete(equipment.id);
-            
-            wx.hideLoading();
-            
-            if (result.success) {
-              wx.showToast({ title: '已永久删除', icon: 'success' });
-              // 通知首页刷新
-              this.notifyHomePageRefresh();
-              setTimeout(() => {
-                safeNavigate('/pages/recycleBin/recycleBin');
-              }, 1500);
-            } else {
-              wx.showToast({ title: result.message || '删除失败', icon: 'none' });
-            }
-          } catch (error) {
-            wx.hideLoading();
-            console.error('永久删除失败:', error);
-            wx.showToast({ title: '删除失败，请重试', icon: 'none' });
-          }
-        }
-      }
-    });
-  },
-
-  // 打开借出对话框
-  openBorrowDialog() {
-    const app = getApp();
-    const userInfo = app.globalData.userInfo || {};
-    
+  // 打开借还对话框
+  openDialog(e) {
+    const type = e.currentTarget.dataset.type;
     this.setData({
-      showBorrowDialog: true,
-      borrowInfo: {
-        borrower: userInfo.username || '',
-        contact: userInfo.phone || '',
-        returnTime: this.data.today
-      }
+      [`${type}DialogVisible`]: true
     });
   },
 
-  // 关闭借出对话框
-  closeBorrowDialog() {
-    this.setData({ showBorrowDialog: false });
+  // 关闭对话框
+  closeDialog(e) {
+    const type = e.currentTarget.dataset.type;
+    this.setData({
+      [`${type}DialogVisible`]: false
+    });
   },
 
-  // 输入借出信息
-  inputBorrowInfo(e) {
+  // 输入框变化
+  onInput(e) {
     const { field } = e.currentTarget.dataset;
-    this.setData({ [`borrowInfo.${field}`]: e.detail.value });
+    this.setData({
+      [`borrowInfo.${field}`]: e.detail.value
+    });
   },
 
   // 日期选择变化
   onDateChange(e) {
-    this.setData({ 'borrowInfo.returnTime': e.detail.value });
+    const { field } = e.currentTarget.dataset;
+    this.setData({
+      [`borrowInfo.${field}`]: e.detail.value
+    });
   },
 
   // 处理借出操作
   handleBorrow() {
+    if (this.data.isGuest) {
+      this.showLoginGuide();
+      return;
+    }
+
     const { equipment, borrowInfo } = this.data;
-    
-    // 表单验证
-    if (!borrowInfo.borrower.trim()) {
-      wx.showToast({ title: '请输入借用人', icon: 'none' });
+    if (!borrowInfo.borrower) {
+      wx.showToast({ title: '请填写借阅人', icon: 'none' });
       return;
     }
-    
-    if (!borrowInfo.contact.trim()) {
-      wx.showToast({ title: '请输入联系方式', icon: 'none' });
-      return;
-    }
-    
-    if (!borrowInfo.returnTime) {
-      wx.showToast({ title: '请选择预计归还时间', icon: 'none' });
-      return;
-    }
-    
-    wx.showLoading({ title: '处理中...', mask: true });
+
+    wx.showLoading({ title: '处理中...' });
     
     try {
-      const app = getApp();
-      const result = app.updateEquipmentStatus(equipment.id, '借出', borrowInfo);
+      // 更新器材状态
+      equipment.status = '借出';
+      equipment.borrowInfo = borrowInfo;
+      equipment.borrowTime = new Date().toISOString();
+      equipment.isSynced = false; // 标记为未同步
       
-      wx.hideLoading();
-      
-      if (result.success) {
-        this.closeBorrowDialog();
-        wx.showToast({ title: '借出成功', icon: 'success' });
-        this.loadEquipmentDetail(equipment.id);
-        // 通知首页刷新
-        this.notifyHomePageRefresh();
-      } else {
-        wx.showToast({ title: result.message || '操作失败', icon: 'none' });
+      // 更新全局数据
+      const index = app.globalData.equipmentList.findIndex(item => item.id === equipment.id);
+      if (index !== -1) {
+        app.globalData.equipmentList[index] = equipment;
+        wx.setStorageSync('equipmentList', app.globalData.equipmentList);
+        
+        // 记录操作日志
+        this.addOperationLog('借出');
+        
+        // 标记数据已变更，需要同步
+        app.markDataChanged();
+        
+        wx.hideLoading();
+        wx.showToast({ title: '借出成功' });
+        this.setData({ 
+          equipment,
+          borrowDialogVisible: false 
+        });
       }
     } catch (error) {
       wx.hideLoading();
       console.error('借出操作失败:', error);
-      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+      wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
   // 处理归还操作
   handleReturn() {
-    const { equipment } = this.data;
+    if (this.data.isGuest) {
+      this.showLoginGuide();
+      return;
+    }
+
+    wx.showLoading({ title: '处理中...' });
+    
+    try {
+      const { equipment } = this.data;
+      // 更新器材状态
+      equipment.status = '在库';
+      equipment.returnTime = new Date().toISOString();
+      equipment.isSynced = false; // 标记为未同步
+      
+      // 更新全局数据
+      const index = app.globalData.equipmentList.findIndex(item => item.id === equipment.id);
+      if (index !== -1) {
+        app.globalData.equipmentList[index] = equipment;
+        wx.setStorageSync('equipmentList', app.globalData.equipmentList);
+        
+        // 记录操作日志
+        this.addOperationLog('归还');
+        
+        // 标记数据已变更，需要同步
+        app.markDataChanged();
+        
+        wx.hideLoading();
+        wx.showToast({ title: '归还成功' });
+        this.setData({ 
+          equipment,
+          returnDialogVisible: false 
+        });
+      }
+    } catch (error) {
+      wx.hideLoading();
+      console.error('归还操作失败:', error);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+  },
+
+  // 处理删除/恢复操作
+  handleDeleteOrRestore() {
+    if (this.data.isGuest) {
+      this.showLoginGuide();
+      return;
+    }
+
+    const { equipment, fromRecycle } = this.data;
+    const actionType = fromRecycle ? '恢复' : '删除';
+    
+    wx.showLoading({ title: '处理中...' });
+    
+    try {
+      if (fromRecycle) {
+        // 从回收站恢复
+        const recycleBin = app.getRecycleBin();
+        const newRecycleBin = recycleBin.filter(item => item.id !== equipment.id);
+        app.saveRecycleBin(newRecycleBin);
+        
+        // 添加回器材列表
+        equipment.isDeleted = false;
+        equipment.status = '在库';
+        equipment.isSynced = false; // 标记为未同步
+        app.globalData.equipmentList.push(equipment);
+        wx.setStorageSync('equipmentList', app.globalData.equipmentList);
+      } else {
+        // 删除到回收站
+        app.globalData.equipmentList = app.globalData.equipmentList.filter(
+          item => item.id !== equipment.id
+        );
+        wx.setStorageSync('equipmentList', app.globalData.equipmentList);
+        
+        // 添加到回收站
+        const recycleBin = app.getRecycleBin();
+        equipment.isDeleted = true;
+        equipment.isSynced = false; // 标记为未同步
+        recycleBin.push(equipment);
+        app.saveRecycleBin(recycleBin);
+      }
+      
+      // 记录操作日志
+      this.addOperationLog(actionType);
+      
+      // 标记数据已变更，需要同步
+      app.markDataChanged();
+      
+      wx.hideLoading();
+      wx.showToast({ title: `${actionType}成功` });
+      setTimeout(() => safeBack(), 1000);
+    } catch (error) {
+      wx.hideLoading();
+      console.error(`${actionType}操作失败:`, error);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+  },
+
+  /**
+   * 跳转到编辑页面
+   */
+  goToEdit() {
+    const { id } = this.data.equipment;
+    if (id) {
+      // 跳转到编辑页面，使用已有的添加页面
+      safeNavigate('/pages/add/add', { id });
+    } else {
+      wx.showToast({ title: '获取器材信息失败', icon: 'none' });
+    }
+  },
+
+  /**
+   * 打开借出对话框
+   */
+  openBorrowDialog() {
+    // 检查器材当前状态是否允许借出
+    if (this.data.equipment.status !== '在库') {
+      wx.showToast({ 
+        title: `当前状态为${this.data.equipment.status}，无法借出`, 
+        icon: 'none' 
+      });
+      return;
+    }
+    
+    // 显示借出对话框
+    this.setData({
+      borrowDialogVisible: true
+    });
+  },
+
+  /**
+   * 将器材移到回收站
+   */
+  deleteToRecycle() {
+    const { id, name } = this.data.equipment;
     
     wx.showModal({
-      title: '确认归还',
-      content: `确定要将【${equipment.name}】标记为已归还吗？`,
+      title: '确认删除',
+      content: `确定要将【${name}】移到回收站吗？`,
       confirmText: '确认',
       cancelText: '取消',
-      success: async (res) => {
+      success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true });
-          
-          try {
-            const app = getApp();
-            const result = await app.updateEquipmentStatus(equipment.id, '在库');
-            
-            wx.hideLoading();
-            
-            if (result.success) {
-              wx.showToast({ title: '归还成功', icon: 'success' });
-              this.loadEquipmentDetail(equipment.id);
-              // 通知首页刷新
-              this.notifyHomePageRefresh();
-            } else {
-              wx.showToast({ title: result.message || '操作失败', icon: 'none' });
-            }
-          } catch (error) {
-            wx.hideLoading();
-            console.error('归还操作失败:', error);
-            wx.showToast({ title: '操作失败，请重试', icon: 'none' });
-          }
+          this.handleDeleteOrRestore();
         }
       }
     });
   },
 
-  // 跳转到编辑页面
-  goToEdit() {
+  // 添加操作日志
+  addOperationLog(actionType) {
     const { equipment } = this.data;
-    safeNavigate(`/pages/add/add?id=${equipment.id}`);
+    const app = getApp();
+    const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    
+    let content = '';
+    switch (actionType) {
+      case '借出':
+        content = `${userInfo.username} 借出了 ${equipment.name}，位于${equipment.location || '未设置位置'}`;
+        break;
+      case '归还':
+        content = `${userInfo.username} 归还了 ${equipment.name}，位于${equipment.location || '未设置位置'}`;
+        break;
+      case '删除':
+        content = `${userInfo.username} 删除了 ${equipment.name}(${equipment.type})`;
+        break;
+      case '恢复':
+        content = `${userInfo.username} 恢复了 ${equipment.name}(${equipment.type})`;
+        break;
+      default:
+        content = `${userInfo.username} 操作了 ${equipment.name}`;
+    }
+    
+    const newActivity = {
+      id: `log-${Date.now()}`,
+      type: actionType,
+      content,
+      location: equipment.location,
+      createTime: new Date().toISOString(),
+      equipmentId: equipment.id
+    };
+    
+    // 更新活动日志
+    let activityLog = app.globalData.activityLog || wx.getStorageSync('activityLog') || [];
+    activityLog.unshift(newActivity);
+    app.globalData.activityLog = activityLog;
+    wx.setStorageSync('activityLog', activityLog);
   },
 
-  // 删除到回收站/永久删除（统一处理方法）
-  deleteToRecycle() {
-    const { equipment, fromRecycle } = this.data;
-    
-    const title = fromRecycle ? '永久删除' : '确认删除';
-    const content = fromRecycle 
-      ? `确定要永久删除【${equipment.name}】吗？此操作不可恢复。`
-      : `确定要删除【${equipment.name}】吗？删除后可在回收站恢复。`;
-    const confirmText = fromRecycle ? '永久删除' : '删除';
-    
+  // 登录引导
+  showLoginGuide() {
     wx.showModal({
-      title,
-      content,
-      confirmText,
-      cancelText: '取消',
-      confirmColor: '#f53f3f',
-      success: async (res) => {
+      title: '登录提示',
+      content: '登录后可进行借还操作',
+      confirmText: '去登录',
+      success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true });
-          
-          try {
-            const app = getApp();
-            // 根据来源调用不同方法
-            const result = fromRecycle 
-              ? await app.permanentlyDelete(equipment.id)
-              : await app.deleteEquipmentToRecycle(equipment.id);
-            
-            wx.hideLoading();
-            
-            if (result.success) {
-              wx.showToast({
-                title: fromRecycle ? '已永久删除' : '已删除',
-                icon: 'success'
-              });
-              // 通知首页刷新
-              this.notifyHomePageRefresh();
-              setTimeout(() => {
-                if (fromRecycle) {
-                  safeNavigate('/pages/recycleBin/recycleBin');
-                } else {
-                  safeNavigate('/pages/manage/manage');
-                }
-              }, 1500);
-            } else {
-              wx.showToast({ title: result.message || '删除失败', icon: 'none' });
-            }
-          } catch (error) {
-            wx.hideLoading();
-            console.error('删除失败:', error);
-            wx.showToast({ title: '删除失败，请重试', icon: 'none' });
-          }
+          wx.navigateTo({ url: '/pages/login/login' });
         }
       }
     });
   },
 
-  // 导航返回
-  navigateBack() {
-    if (this.data.fromRecycle) {
-      safeNavigate('/pages/recycleBin/recycleBin');
-    } else {
-      safeBack();
-    }
-  },
-
-  // 通知首页刷新数据（解决最近活动不更新问题）
-  notifyHomePageRefresh() {
-    const pages = getCurrentPages();
-    const homePage = pages.find(page => page.route === 'pages/index/index');
-    if (homePage) {
-      homePage.loadRecentActivities();
-      homePage.loadEquipmentStats();
-    }
+  // 返回
+  goBack() {
+    safeBack();
   }
-});
+})

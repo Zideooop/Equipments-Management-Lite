@@ -13,7 +13,7 @@ Page({
     isAnimating: false,
     welcomeText: '',
     welcomeSubtext: '',
-    userInfo: {}, // 新增用户信息存储
+    userInfo: {}, // 用户信息存储
     equipment: {
       name: '',
       type: '',
@@ -21,50 +21,29 @@ Page({
       quantity: 1,
       location: '',
       status: '在库',
-      remarks: '',
-      // ...原有数据
-  isGuest: !wx.getStorageSync('userInfo') // 判断是否为游客
-},
-showLoginGuide() {
-  wx.showModal({
-    title: '登录提示',
-    content: '登录后可关联借还记录、同步数据，体验完整功能',
-    confirmText: '去登录',
-    success: (res) => {
-      if (res.confirm) {
-        wx.navigateTo({ url: '/pages/login/login' });
-      }
-    }
-  });
-  
+      remarks: ''
     },
+    isGuest: true, // 默认游客状态
     statusOptions: ['在库', '出库'],
     isRefreshing: false,
     fabOpen: false,
-    // 优化：使用图片图标统一视觉风格
     floatMenuItems: [
       { icon: '/images/function/func-add.png', text: '添加器材', action: 'add' },
       { icon: '/images/function/func-sync.png', text: '同步数据', action: 'sync' },
       { icon: '/images/function/func-stats.png', text: '器材统计', action: 'stats' }
-    ]
+    ],
+    weatherInfo: null,
+    syncStatus: '',
+    lastSyncTime: ''
   },
 
   onLoad() {
-    // 缓存app实例，减少重复调用
     this.app = getApp();
-
-    const app = getApp();
-    app.checkLoginStatus().then(isLoggedIn => {
-      if (!isLoggedIn) {
-        safeNavigate({ url: '/pages/login/login' }); // 确认未登录后再跳转
-      }
-    });
-
-
-    // 预加载页面路径列表用于导航验证
+    this.updateUserStatus(); // 初始化用户状态
     this.setWelcomeText();
     this.loadEquipmentStats();
     this.loadRecentActivities();
+    this.loadSyncStatus();
     
     // 处理扫码带入的数据
     const options = this.options;
@@ -75,19 +54,46 @@ showLoginGuide() {
     }
   },
 
+  // 关键修复：页面显示时强制更新用户状态
   onShow() {
+    this.updateUserStatus(); // 每次显示都更新用户状态
+    this.setWelcomeText();   // 重新设置欢迎词
+    
     // 页面显示时刷新数据，添加节流防止频繁刷新
     if (!this._isRefreshing) {
       this._isRefreshing = true;
       setTimeout(() => {
         this.loadEquipmentStats();
         this.loadRecentActivities();
+        this.loadSyncStatus();
         this._isRefreshing = false;
       }, 300);
     }
   },
 
-  // 初始化页面路径列表
+  // 核心修复：统一更新用户状态的方法
+  updateUserStatus() {
+    // 1. 优先从全局数据获取（登录后实时更新）
+    const globalUser = app.globalData.userInfo || {};
+    // 2. 本地存储兜底（防止全局数据丢失）
+    const storageUser = wx.getStorageSync('userInfo') || {};
+    // 3. 合并用户信息（全局数据优先）
+    const userInfo = { ...storageUser, ...globalUser };
+    
+    // 4. 修正isGuest判断逻辑
+    const isGuest = !userInfo || userInfo.isGuest || !userInfo.username;
+    
+    this.setData({
+      userInfo: { ...userInfo, isGuest },
+      isGuest: isGuest // 同步更新data中的isGuest
+    });
+    
+    // 如果是登录状态，加载天气信息
+    if (!isGuest && !this.data.weatherInfo) {
+      this.getWeatherInfo();
+    }
+  },
+
   // 下拉刷新处理
   onPullDownRefresh() {
     if (this.data.isRefreshing) return;
@@ -107,12 +113,20 @@ showLoginGuide() {
     });
   },
 
-  // 设置欢迎信息，添加游客状态判断
+  // 设置欢迎信息，修复用户状态判断
   setWelcomeText() {
-    const userInfo = this.app.globalData.userInfo || {};
-    // 判断是否为游客状态（无用户信息或明确标记为游客）
-    const isGuest = !userInfo || userInfo.isGuest || !userInfo.username;
-    const userName = isGuest ? '游客' : (userInfo.username || '管理员');
+    const { userInfo } = this.data; // 使用updateUserStatus更新后的userInfo
+    const isGuest = userInfo.isGuest;
+    const isAdmin = userInfo.role === 'admin';
+    
+    let userName;
+    if (isGuest) {
+      userName = '游客';
+    } else if (isAdmin) {
+      userName = '管理员';
+    } else {
+      userName = userInfo.username || userInfo.nickName || '用户';
+    }
     
     const date = new Date();
     const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -120,12 +134,71 @@ showLoginGuide() {
     const today = `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日`;
     
     this.setData({
-      userInfo: {
-        ...userInfo,
-        isGuest  // 存储游客状态标识
-      },
       welcomeText: `欢迎回来，${userName}`,
       welcomeSubtext: `${today} ${weekDay}`
+    });
+  },
+
+  // 加载同步状态和时间 - 优化：精确到秒，区分状态图标
+  loadSyncStatus() {
+    const lastSyncTime = wx.getStorageSync('lastSyncTime');
+    const syncStatus = wx.getStorageSync('syncStatus') || '';
+    
+    if (lastSyncTime) {
+      const date = new Date(lastSyncTime);
+      // 优化：显示年月日时分秒
+      const formattedTime = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+      this.setData({
+        lastSyncTime: formattedTime,
+        syncStatus: syncStatus
+      });
+    } else {
+      this.setData({
+        lastSyncTime: '未同步',
+        syncStatus: ''
+      });
+    }
+  },
+
+  // 获取天气信息
+  getWeatherInfo() {
+    wx.getLocation({
+      type: 'wgs84',
+      success: (res) => {
+        const latitude = res.latitude;
+        const longitude = res.longitude;
+        
+        // 调用天气API（示例使用和风天气）
+        wx.request({
+          url: `https://devapi.qweather.com/v7/weather/now?location=${longitude},${latitude}&key=YOUR_WEATHER_KEY`,
+          success: (result) => {
+            if (result.data.code === '200') {
+              const weatherData = result.data.now;
+              // 获取城市信息
+              wx.request({
+                url: `https://geoapi.qweather.com/v2/city/lookup?location=${longitude},${latitude}&key=YOUR_WEATHER_KEY`,
+                success: (cityRes) => {
+                  const city = cityRes.data.location[0]?.name || '未知城市';
+                  this.setData({
+                    weatherInfo: {
+                      city,
+                      temp: weatherData.temp,
+                      condition: weatherData.text,
+                      icon: `/images/weather/${weatherData.icon}.png`
+                    }
+                  });
+                }
+              });
+            }
+          },
+          fail: () => {
+            this.setData({ weatherInfo: null });
+          }
+        });
+      },
+      fail: () => {
+        this.setData({ weatherInfo: null });
+      }
     });
   },
 
@@ -172,9 +245,8 @@ showLoginGuide() {
     });
   },
 
-  // 加载最近活动记录（修复展示异常）
+  // 加载最近活动记录
   loadRecentActivities(callback) {
-    // 拆分复杂逻辑为子函数，提高可读性
     const activities = this._getGlobalActivities();
     const equipmentList = this._getEquipmentList();
     const addActivities = this._generateAddActivities(equipmentList, activities);
@@ -204,14 +276,19 @@ showLoginGuide() {
     return this.app.globalData.equipmentList || wx.getStorageSync('equipmentList') || [];
   },
 
-  // 生成新增器材活动记录
+  // 生成新增器材活动记录 - 优化：记录包含位置信息
   _generateAddActivities(equipmentList, existingActivities) {
+    const userInfo = this.app.globalData.userInfo || {};
+    const userName = userInfo.username || '用户';
+    
     return equipmentList
       .filter(item => !existingActivities.some(act => act.equipmentId === item.id && act.type === '添加'))
       .map(item => ({
         id: `add-${item.id}`,
         type: '添加',
-        content: `新增器材: ${item.name}`,
+        // 优化：记录更详细，包含位置信息
+        content: `${userName} 新增了 ${item.name}(${item.type}) ${item.quantity || 1}个，位于${item.location || '未设置位置'}`,
+        location: item.location,
         createTime: item.createTime || item.addTime || new Date().toISOString(),
         equipmentId: item.id
       }));
@@ -219,144 +296,160 @@ showLoginGuide() {
 
   // 合并并去重活动记录
   _mergeAndDeduplicateActivities(activities, addActivities) {
-    return [...activities, ...addActivities]
-      .filter((item, index, self) => 
-        index === self.findIndex(t => t.id === item.id)
-      );
+    const activityMap = new Map();
+    
+    // 添加现有活动
+    activities.forEach(activity => {
+      activityMap.set(activity.id, activity);
+    });
+    
+    // 添加新增活动（可能会覆盖重复的）
+    addActivities.forEach(activity => {
+      activityMap.set(activity.id, activity);
+    });
+    
+    return Array.from(activityMap.values());
   },
 
-  // 格式化并排序活动记录（修复展示异常的核心处理）
+  // 格式化并排序活动记录
   _formatAndSortActivities(activities) {
-    // 过滤无效记录，修复展示异常
     return activities
-      .filter(activity => {
-        // 确保活动记录包含必要字段
-        return activity && 
-               typeof activity === 'object' &&
-               activity.id && 
-               activity.content && 
-               activity.createTime && 
-               activity.equipmentId;
+      .map(activity => {
+        const date = new Date(activity.createTime);
+        return {
+          ...activity,
+          formattedTime: `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
+        };
       })
-      .sort((a, b) => {
-        const dateA = new Date(this._formatDateForIOS(a.createTime));
-        const dateB = new Date(this._formatDateForIOS(b.createTime));
-        return dateB - dateA; // 按时间倒序排列
-      })
-      .slice(0, 5) // 只取最近5条
-      .map(activity => ({
-        ...activity,
-        formattedTime: this.getRelativeTime(activity.createTime)
-      }));
+      .sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+      .slice(0, 10); // 只显示最近10条
   },
 
-  // 处理iOS日期兼容性
-  _formatDateForIOS(dateString) {
-    return dateString.replace(/-/g, '/');
+  // 获取活动类型样式
+  _getActivityTypeStyle(type) {
+    switch(type) {
+      case '添加':
+        return {
+          icon: '/images/operation/add.png',
+          className: 'activity-icon-add',
+          badgeText: '新增'
+        };
+      case '借出':
+        return {
+          icon: '/images/operation/lend.png',
+          className: 'activity-icon-lend',
+          badgeText: '借出'
+        };
+      case '归还':
+        return {
+          icon: '/images/operation/return.png',
+          className: 'activity-icon-return',
+          badgeText: '归还'
+        };
+      case '删除':
+        return {
+          icon: '/images/operation/delete.png',
+          className: 'activity-icon-delete',
+          badgeText: '删除'
+        };
+      case '恢复':
+        return {
+          icon: '/images/operation/restore.png',
+          className: 'activity-icon-restore',
+          badgeText: '恢复'
+        };
+      default:
+        return {
+          icon: '/images/operation/other.png',
+          className: 'activity-icon-other',
+          badgeText: '其他'
+        };
+    }
   },
 
-  // 获取相对时间
-  getRelativeTime(dateString) {
-    try {
-      const iosCompatibleDate = this._formatDateForIOS(dateString);
-      const createTime = new Date(iosCompatibleDate);
-      const now = new Date();
-      
-      const diffMs = now - createTime;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
-      
-      if (diffDays > 1) {
-        return `${diffDays}天前`;
-      } else if (diffDays === 1) {
-        return '昨天';
-      } else if (diffHours > 0) {
-        return `${diffHours}小时前`;
-      } else if (diffMins > 0) {
-        return `${diffMins}分钟前`;
-      } else {
-        return '刚刚';
+  // 切换悬浮按钮状态
+  toggleFab() {
+    this.setData({
+      fabOpen: !this.data.fabOpen
+    });
+  },
+
+  // 处理悬浮菜单点击 - 优化：同步状态图标和时间更新
+  handleFabAction(e) {
+    const action = e.currentTarget.dataset.action;
+    switch (action) {
+      case 'qrcode':
+        // 跳转到二维码生成页面
+        wx.navigateTo({
+          url: '/pages/equipmentHub/equipmentHub'
+        });
+        break;
+      case 'scan':
+        this.scanCode();
+        break;
+      case 'sync':
+        wx.showLoading({ title: '同步中...' });
+        this.app.syncData()
+          .then((result) => {
+            wx.hideLoading();
+            if (result.success) {
+              const now = new Date();
+              // 优化：同步时间精确到秒
+              const formattedTime = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+              
+              wx.setStorageSync('lastSyncTime', now.toISOString());
+              wx.setStorageSync('syncStatus', 'success');
+              
+              this.setData({
+                lastSyncTime: formattedTime,
+                syncStatus: 'success'
+              });
+              
+              wx.showToast({ title: '同步成功' });
+            } else {
+              wx.setStorageSync('syncStatus', 'failed');
+              this.setData({ syncStatus: 'failed' });
+              wx.showToast({ title: '同步失败', icon: 'none' });
+            }
+            this.loadEquipmentStats();
+            this.loadRecentActivities();
+          })
+          .catch((err) => {
+            wx.hideLoading();
+            wx.setStorageSync('syncStatus', 'failed');
+            this.setData({ syncStatus: 'failed' });
+            wx.showToast({ title: '同步失败', icon: 'none' });
+            console.error('同步失败:', err);
+          });
+        break;
+      case 'stats':
+        safeNavigate('/pages/statistics/statistics');
+        break;
+    }
+    this.setData({ fabOpen: false });
+  },
+
+  // 登录引导
+  showLoginGuide() {
+    wx.showModal({
+      title: '登录提示',
+      content: '登录后可关联借还记录、同步数据，体验完整功能',
+      confirmText: '去登录',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/login/login' });
+        }
       }
-    } catch (e) {
-      return '时间格式错误';
-    }
+    });
   },
 
-  // 格式化日期（修复iOS兼容性）
-  formatDate(dateString) {
-    const iosCompatibleDate = this._formatDateForIOS(dateString);
-    const date = new Date(iosCompatibleDate);
-    
-    if (isNaN(date.getTime())) {
-      return '无效日期';
-    }
-    
-    return `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  },
-
-  // 活动记录点击跳转详情
-  goToDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) {
-      wx.showToast({ title: '无法获取器材信息', icon: 'none' });
-      return;
-    }
-    
-    const equipmentList = this.app.globalData.equipmentList || [];
-    const equipmentExists = equipmentList.some(item => item.id === id);
-    
-    if (equipmentExists) {
-      safeNavigate(`/pages/equipmentDetail/equipmentDetail?id=${id}`);
-    } else {
-      const deletedList = this.app.globalData.deletedEquipmentList || wx.getStorageSync('deletedEquipmentList') || [];
-      const isInRecycle = deletedList.some(item => item.id === id);
-      
-      if (isInRecycle) {
-        safeNavigate(`/pages/equipmentDetail/equipmentDetail?id=${id}&fromRecycle=true`);
-      } else {
-        wx.showToast({ title: '该器材不存在或已被彻底删除', icon: 'none' });
-      }
-    }
-  },
-
-  // 跳转到器材列表页并应用筛选
-  goToManage(e) {
-    const status = e.currentTarget.dataset.status || 'all';
-    // 确保筛选状态正确设置
-    this.app.globalData.filterStatus = status;
-    // 强制刷新管理页数据
-    this.app.globalData.forceRefreshManage = true;
-    safeNavigate('/pages/manage/manage');
-  },
-
-  // 切换底部菜单
-  toggleMenu() {
-    if (this.data.isAnimating) return;
-    
-    const isOpen = this.data.isMenuOpen;
-    this.setData({ isAnimating: true });
-    
-    setTimeout(() => {
-      this.setData({ isMenuOpen: !isOpen, isAnimating: false });
-    }, 300);
-  },
-
-  // 跳转到添加页面
+  // 新增：跳转到添加页面
   goToAddPage() {
-    this.setData({ isMenuOpen: false });
     safeNavigate('/pages/add/add');
   },
 
-  // 跳转到批量添加页面
-  goToBatchAdd() {
-    this.setData({ isMenuOpen: false });
-    safeNavigate('/pages/batchAdd/batchAdd');
-  },
-
-  // 扫码功能 - 完善错误处理
+  // 新增：扫码功能
   scanCode() {
-    this.setData({ isMenuOpen: false });
     wx.scanCode({
       success: (res) => {
         safeNavigate(`/pages/add/add?scanCode=${encodeURIComponent(res.result)}`);
@@ -368,137 +461,22 @@ showLoginGuide() {
     });
   },
 
-  // 跳转到借还记录页面
-  goToBorrowRecord() {
-    safeNavigate('/pages/borrowRecord/borrowRecord');
-  },
-
-  // 跳转到回收站
-  goToRecycleBin() {
-    safeNavigate('/pages/recycleBin/recycleBin');
-  },
-
-  // 跳转到我的页面
-  goToMine() {
-    safeNavigate('/pages/mine/mine');
-  },
-
-  // 处理输入
-  handleInput(e) {
-    const { field } = e.currentTarget.dataset;
-    const { value } = e.detail;
-    
-    if (field === 'quantity') {
-      const num = parseInt(value) || 1;
-      this.setData({ [`equipment.${field}`]: num < 1 ? 1 : num });
+  // 新增：显示活动详情
+  showActivityDetail(e) {
+    const activityId = e.currentTarget.dataset.id;
+    if (activityId) {
+      safeNavigate(`/pages/equipmentDetail/equipmentDetail?id=${activityId}`);
     } else {
-      this.setData({ [`equipment.${field}`]: value });
+      wx.showToast({
+        title: '活动ID不存在',
+        icon: 'none'
+      });
     }
   },
 
-  // 处理状态变更
-  handleStatusChange(e) {
-    const index = e.detail.value;
-    this.setData({ 'equipment.status': this.data.statusOptions[index] });
-  },
-
-  // 取消
-  cancel() {
-    safeBack();
-  },
-
-  // 保存器材 - 修复新增后不显示问题
-  async saveEquipment() {
-    const { name } = this.data.equipment;
-    
-    if (!name.trim()) {
-      wx.showToast({ title: '请输入器材名称', icon: 'none' });
-      return;
-    }
-
-    try {
-      wx.showLoading({ title: '保存中...' });
-      
-      // 确保是Promise调用
-      const newEquipment = await (typeof this.app.addEquipment === 'function' 
-        ? this.app.addEquipment({
-            ...this.data.equipment,
-            createTime: new Date().toISOString(),
-            updateTime: new Date().toISOString()
-          })
-        : new Promise((resolve) => {
-            // 降级方案
-            const equipmentList = wx.getStorageSync('equipmentList') || [];
-            const newEq = {
-              ...this.data.equipment,
-              id: `eq-${Date.now()}`,
-              createTime: new Date().toISOString(),
-              updateTime: new Date().toISOString()
-            };
-            equipmentList.unshift(newEq);
-            wx.setStorageSync('equipmentList', equipmentList);
-            this.app.globalData.equipmentList = equipmentList;
-            resolve(newEq);
-          })
-      );
-
-      wx.hideLoading();
-      
-      if (newEquipment) {
-        // 强制刷新首页数据
-        this.loadEquipmentStats();
-        this.loadRecentActivities();
-        
-        wx.showToast({ title: '添加成功' });
-        setTimeout(() => safeBack(), 1500);
-      } else {
-        wx.showToast({ title: '保存失败', icon: 'none' });
-      }
-    } catch (error) {
-      wx.hideLoading();
-      console.error('保存失败:', error);
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
-    }
-  },
-
-  // 切换悬浮按钮状态
-  toggleFab() {
-    this.setData({
-      fabOpen: !this.data.fabOpen
-    });
-  },
-
-  // 处理悬浮菜单点击 - 完善加载状态
-  handleFabAction(e) {
-    const action = e.currentTarget.dataset.action;
-    
-    switch (action) {
-      case 'add':
-        this.goToAddPage();
-        break;
-      case 'scan':
-        this.scanCode();
-        break;
-      case 'sync':
-        wx.showLoading({ title: '同步中...' });
-        this.app.syncData()
-          .then(() => {
-            wx.hideLoading();
-            wx.showToast({ title: '同步成功' });
-            this.loadEquipmentStats();
-            this.loadRecentActivities();
-          })
-          .catch((err) => {
-            wx.hideLoading();
-            wx.showToast({ title: '同步失败', icon: 'none' });
-            console.error('同步失败:', err);
-          });
-        break;
-      case 'stats':
-        safeNavigate('/pages/statistics/statistics');
-        break;
-    }
-    // 关闭菜单
-    this.setData({ fabOpen: false });
+  // 新增：跳转到管理页面
+  goToManage() {
+    safeNavigate('/pages/manage/manage');
   }
 })
+    

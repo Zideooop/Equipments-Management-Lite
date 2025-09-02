@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "库存管理中心", 
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "enablePullDownRefresh": false
+}

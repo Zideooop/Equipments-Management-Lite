@@ -1,0 +1,545 @@
+/* 基础样式 */
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  font-size: 28rpx;
+}
+
+/* 顶部导航 */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.help-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 选项卡样式 */
+.tabs {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 25rpx 0;
+  font-size: 30rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #07c160;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4rpx;
+  background-color: #07c160;
+}
+
+/* 内容区域 */
+.tab-content {
+  padding: 20rpx;
+}
+
+/* 卡片样式 */
+.card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+textarea.form-control {
+  min-height: 120rpx;
+  line-height: 1.5;
+  resize: none;
+}
+
+/* 单选按钮组 */
+.radio-group {
+  display: flex;
+  gap: 30rpx;
+  padding: 10rpx 0;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: #333;
+}
+
+/* 条码容器 */
+.code-container {
+  width: 300rpx;
+  height: 300rpx;
+  margin: 30rpx auto;
+  padding: 15rpx;
+  background-color: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.code-image {
+  width: 270rpx;
+  height: 270rpx;
+}
+
+/* 条码描述 */
+.code-desc {
+  text-align: center;
+  color: #888;
+  font-size: 24rpx;
+  margin-top: 20rpx;
+  line-height: 1.5;
+}
+
+.line-break {
+  display: block;
+  margin-top: 8rpx;
+}
+
+/* 器材信息 */
+.equipment-info {
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+  padding: 15rpx 0;
+  border-bottom: 1px dashed #eee;
+  margin-bottom: 20rpx;
+}
+
+/* 按钮样式 */
+.btn-group {
+  display: flex;
+  gap: 20rpx;
+  padding: 10rpx 0;
+}
+
+.btn {
+  flex: 1;
+  height: 90rpx;
+  border-radius: 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-sm {
+  height: 60rpx;
+  font-size: 26rpx;
+  padding: 0 20rpx;
+}
+
+.btn-primary {
+  background-color: #07c160;
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+/* 清单头部 */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.list-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.list-actions {
+  display: flex;
+  gap: 15rpx;
+}
+
+/* 最近器材面板 */
+.recent-panel {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.panel-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 15rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+}
+
+.recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240rpx, 1fr));
+  gap: 15rpx;
+}
+
+.recent-item {
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  padding: 15rpx;
+  font-size: 24rpx;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.recent-item:active {
+  background-color: #f0f0f0;
+}
+
+.recent-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-spec {
+  color: #666;
+  font-size: 22rpx;
+  margin-bottom: 5rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-qty {
+  color: #888;
+  font-size: 22rpx;
+}
+
+/* 清单样式 */
+.inventory-list {
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 0 10rpx;
+  height: 100rpx;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+/* 已核对样式 */
+.list-item.checked {
+  background-color: rgba(7, 193, 96, 0.03);
+}
+
+/* 数量差异样式 */
+.list-item.has-difference {
+  border-left: 4rpx solid #ff7d00;
+}
+
+.list-item.header {
+  background-color: #f9f9f9;
+  font-weight: 500;
+  color: #666;
+  height: 80rpx;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.col {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-name {
+  width: 25%;
+  padding-left: 10rpx;
+}
+
+.col-spec {
+  width: 20%;
+}
+
+.col-qty {
+  width: 18%;
+}
+
+.col-actual {
+  width: 18%;
+}
+
+.col-check {
+  width: 10%;
+  justify-content: center;
+}
+
+.col-actions {
+  width: 9%;
+  justify-content: center;
+}
+
+/* 实际数量输入框 */
+.actual-qty-input {
+  width: 80rpx;
+  height: 50rpx;
+  text-align: center;
+  border: 1px solid #eee;
+  border-radius: 4rpx;
+  font-size: 26rpx;
+}
+
+/* 数量调整 */
+.qty-adjust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.qty-btn {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+}
+
+.qty-btn.minus {
+  color: #f53f3f;
+}
+
+.qty-btn.plus {
+  color: #07c160;
+}
+
+.qty-value {
+  min-width: 40rpx;
+  text-align: center;
+}
+
+/* 操作按钮 */
+.action-btn {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-btn image {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+/* 空列表状态 */
+.empty-list {
+  text-align: center;
+  padding: 60rpx 20rpx;
+  color: #888;
+}
+
+.empty-icon {
+  width: 120rpx;
+  height: 120rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.hint {
+  font-size: 24rpx;
+  margin-top: 10rpx;
+  display: block;
+  color: #aaa;
+}
+
+/* 差异提示 */
+.difference-hint {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 15rpx 20rpx;
+  background-color: rgba(255, 125, 0, 0.1);
+  border-radius: 8rpx;
+  color: #e67700;
+  font-size: 26rpx;
+  margin-bottom: 20rpx;
+}
+
+.hint-icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1px solid #eee;
+  padding: 15rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-info {
+  color: #666;
+  font-size: 26rpx;
+}
+
+.difference-text {
+  color: #e67700;
+  margin-left: 10rpx;
+}
+
+.bottom-actions {
+  display: flex;
+  gap: 15rpx;
+  width: 60%;
+}
+
+.bottom-actions .btn {
+  flex: 1;
+}
+
+/* 加载动画 */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border: 5rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 28rpx;
+  margin-top: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 提示弹窗 */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 20rpx 30rpx;
+  border-radius: 8rpx;
+  z-index: 10000;
+  animation: fadeIn 0.3s, fadeOut 0.3s 2s;
+}
+
+.toast-content {
+  font-size: 28rpx;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+    

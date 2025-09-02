@@ -1,100 +1,97 @@
-<!-- 我的页面WXML -->
 <view class="container">
-
-  <!-- 用户信息卡片 -->
-<!-- 修改后的用户信息卡片 -->
-<view class="user-card" bindtap="{{userInfo ? '' : 'goToLogin'}}">
-  <view class="user-avatar">
-    <image 
-      src="{{userInfo.avatarUrl || '/images/page/page-profile.png'}}" 
-      mode="widthFix" 
-      class="avatar-img"
-      style="width: 80rpx; height: 80rpx;"
-    />
+  <!-- 用户信息头部 -->
+  <view class="user-header">
+    <view class="user-avatar" bindtap="{{isGuest ? 'goToLogin' : 'editProfile'}}">
+      <image 
+        src="{{userInfo.avatarUrl || '/images/page/page-profile.png'}}" 
+        mode="widthFix" 
+        class="avatar-img"
+      />
+    </view>
+    
+    <view class="user-info">
+      <view class="user-name">
+        {{isGuest ? '点击登录' : userInfo.nickName || userInfo.username || '用户'}}
+        <image 
+          wx:if="{{!isGuest && userInfo.role === 'admin'}}" 
+          src="/images/function/role-admin.png" 
+          mode="widthFix" 
+          class="admin-tag"
+        />
+      </view>
+      <view class="user-role">
+        {{isGuest ? '游客模式' : userInfo.role === 'admin' ? '管理员' : '普通用户'}}
+      </view>
+    </view>
+    
+    <view wx:if="{{isGuest}}" class="login-btn" bindtap="goToLogin">
+      登录
+    </view>
   </view>
-  <view class="user-info">
-    <view class="user-name">{{userInfo.nickName || '未登录'}}</view>
-    <view class="user-desc">{{userInfo ? '点击可修改个人信息' : '点击登录以使用完整功能'}}</view>
-  </view>
-  <view class="user-action" bindtap="{{userInfo ? 'goToProfile' : 'goToLogin'}}">
-    <text>{{userInfo ? '编辑' : '登录'}}</text>
-    <image 
-      src="/images/function/func-arrow-right.png" 
-      mode="widthFix" 
-      class="arrow-icon"
-      style="width: 32rpx; height: 32rpx;"
-    />
-  </view>
-</view>
 
-
-
-
-
-  <!-- 功能菜单区 -->
+  <!-- 功能列表 -->
   <view class="function-list">
-    <view class="function-item" bindtap="goToRecycleBin">
-      <image 
-        src="/images/page/page-recycle.png" 
-        mode="widthFix" 
-        class="function-icon recycle"
-        style="width: 50rpx; height: 50rpx;"
-      />
-      <view class="function-text">回收站</view>
-      <view class="function-badge">{{recycleCount}} 件</view>
-      <image 
-        src="/images/function/func-arrow-right.png" 
-        mode="widthFix" 
-        class="arrow-icon"
-        style="width: 32rpx; height: 32rpx;"
-      />
-    </view>
-    
-    <view class="function-item" bindtap="syncData">
-      <image 
-        src="/images/function/func-sync.png" 
-        mode="widthFix" 
-        class="function-icon sync"
-        style="width: 50rpx; height: 50rpx;"
-      />
-      <view class="function-text">数据同步</view>
-      <view class="function-desc">{{lastSyncTime || '未同步'}}</view>
-      <image 
-        src="/images/function/func-arrow-right.png" 
-        mode="widthFix" 
-        class="arrow-icon"
-        style="width: 32rpx; height: 32rpx;"
-      />
-    </view>
-    
-    <view class="function-item" bindtap="goToAbout">
-      <image 
-        src="/images/page/page-about.png" 
-        mode="widthFix" 
-        class="function-icon about"
-        style="width: 50rpx; height: 50rpx;"
-      />
-      <view class="function-text">关于系统</view>
-      <view class="function-desc">v1.2.0</view>
+    <view class="function-group">
+      <!-- 合并后的器材管理中心入口 -->
+      <view class="function-item" bindtap="navigateToManage">
+        <image src="/images/function/func-manage.png" mode="widthFix" class="function-icon" />
+        <view class="function-text">器材管理中心</view>
+        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+      </view>
+
+      <view class="function-item" bindtap="navigateToRecycle">
+        <image src="/images/function/func-recycle.png" mode="widthFix" class="function-icon" />
+        <view class="function-text">回收站</view>
+        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+      </view>
       
-      <image 
-        src="/images/function/func-arrow-right.png" 
-        mode="widthFix" 
-        class="arrow-icon"
-        style="width: 32rpx; height: 32rpx;"
-      />
+      <view class="function-item" bindtap="navigateToRecords">
+        <image src="/images/function/func-record.png" mode="widthFix" class="function-icon" />
+        <view class="function-text">操作记录</view>
+        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+      </view>
+    </view>
+    
+    <view class="function-group">
+      <view class="function-item" bindtap="syncData">
+        <!-- 修复图标路径为status目录，并添加同步中显示逻辑 -->
+        <image 
+          wx:if="{{!isSyncing}}"
+          src="/images/status/{{syncStatus === 'success' ? 'status-sync-succeed' : syncStatus === 'failed' ? 'status-sync-failed' : 'status-sync'}}.png" 
+          mode="widthFix" 
+          class="function-icon"
+        />
+        
+        <!-- 同步中显示loading图标 -->
+        <image 
+          wx:if="{{isSyncing}}"
+          src="/images/status/status-sync-loading.png" 
+          mode="widthFix" 
+          class="function-icon sync-loading"
+        />
+        
+        <view class="function-text">数据同步</view>
+        <view class="sync-time">{{lastSyncTime || '未同步'}}</view>
+        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+      </view>
+      
+      <view class="function-item" bindtap="navigateToSetting">
+        <image src="/images/function/func-setting.png" mode="widthFix" class="function-icon" />
+        <view class="function-text">设置</view>
+        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+      </view>
     </view>
   </view>
 
-  <!-- 退出登录按钮 -->
-  <view wx:if="{{userInfo}}" class="logout-btn" bindtap="logout">
-    <image 
-      src="/images/page/page-logout.png" 
-      mode="widthFix" 
-      class="logout-icon"
-      style="width: 50rpx; height: 50rpx;"
-    />
-    <text>退出登录</text>
+  <!-- 退出登录 -->
+  <view wx:if="{{!isGuest}}" class="logout-section">
+    <button class="logout-btn" bindtap="confirmLogout">退出登录</button>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer">
+    <view class="version">版本号 v1.3.8</view>
+    <view class="copyright">© 2025 器材管理系统</view>
   </view>
 </view>
     

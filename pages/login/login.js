@@ -9,7 +9,7 @@ const app = getApp();
 Page({
   data: {
     // 新增调试标记
-  showDebug: true, // 正式版改为false
+    showDebug: true, // 正式版改为false
     username: '',
     password: '',
     rememberPassword: false,
@@ -18,29 +18,28 @@ Page({
     errorMsg: ''
   },
 
-// 游客登录
-visitorLogin() {
-  const visitorInfo = {
-    id: 'visitor_' + Date.now(),
-    username: '游客_' + Math.random().toString(36).slice(-6),
-    nickName: '游客用户',
-    avatarUrl: '/images/page/page-profile.png', // 默认头像
-    role: '游客'
-  };
-  this.handleLoginSuccess(visitorInfo, false);
-},
+  // 游客登录
+  visitorLogin() {
+    const visitorInfo = {
+      id: 'visitor_' + Date.now(),
+      username: '游客_' + Math.random().toString(36).slice(-6),
+      nickName: '游客用户',
+      avatarUrl: '/images/page/page-profile.png', // 默认头像
+      role: '游客',
+      isGuest: true // 明确标记为游客
+    };
+    this.handleLoginSuccess(visitorInfo, false);
+  },
 
-// 显示管理员登录
-showAdminLogin() {
-  safeNavigate({
-    url: '/pages/adminLogin/adminLogin', // 需创建管理员登录页
-    fail: () => {
-      this.showError('管理员页面未配置');
-    }
-  });
-},
-
-
+  // 显示管理员登录
+  showAdminLogin() {
+    safeNavigate({
+      url: '/pages/adminLogin/adminLogin', // 需创建管理员登录页
+      fail: () => {
+        this.showError('管理员页面未配置');
+      }
+    });
+  },
 
   onLoad() {
     // 检查是否有保存的密码
@@ -84,12 +83,16 @@ showAdminLogin() {
     return require('../../utils/md5.js').md5(password);
   },
 
-  // 处理登录成功
+  // 处理登录成功 - 修复用户信息存储逻辑
   handleLoginSuccess(userInfo, rememberPassword) {
-    // 保存用户信息到全局和本地存储
-    app.globalData.userInfo = userInfo;
-    wx.setStorageSync('userInfo', userInfo);
+    // 保存用户信息到全局和本地存储，明确设置isGuest
+    const userData = {
+      ...userInfo,
+      isGuest: userInfo.role === '游客' // 只有游客角色才标记为游客
+    };
     
+    app.globalData.userInfo = userData;
+    wx.setStorageSync('userInfo', userData);
 
     // 如果需要记住密码，保存用户名和密码
     if (rememberPassword) {
@@ -110,16 +113,32 @@ showAdminLogin() {
       duration: 1500,
       success: () => {
         setTimeout(() => {
-          safeNavigate({ url: '/pages/index/index' });
+          // 返回首页并强制刷新
+          const pages = getCurrentPages();
+          if (pages.length > 1) {
+            // 如果首页在页面栈中，返回并刷新
+            wx.navigateBack({
+              delta: pages.length - 1,
+              success: () => {
+                const homePage = getCurrentPages()[0];
+                if (homePage) homePage.onShow();
+              }
+            });
+          } else {
+            // 否则直接跳转
+            safeNavigate({ url: '/pages/index/index' });
+          }
         }, 1500);
       }
     });
   },
+
   clearLoginStatus() {
     console.warn('清除登录状态，调用栈：', new Error().stack); // 追踪调用来源
-    this.globalData.userInfo = null;
+    app.globalData.userInfo = null;
     wx.removeStorageSync('userInfo');
   },
+
   // 账号密码登录
   login() {
     const { username, password, rememberPassword } = this.data;
@@ -191,7 +210,6 @@ showAdminLogin() {
   },
 
   // 微信快捷登录
-
   wechatQuickLogin() {
     // 改为主动触发授权弹窗（兼容旧版本）
     wx.showModal({
@@ -204,14 +222,16 @@ showAdminLogin() {
       }
     });
   },
-    // 新增微信微信用户信息回调
-onWechatUserInfo(e) {
-  if (e.detail.userInfo) {
-    this.getWechatUserInfo();
-  } else {
-    this.showError('请允许获取用户信息以完成登录');
-  }
-},
+
+  // 微信用户信息回调
+  onWechatUserInfo(e) {
+    if (e.detail.userInfo) {
+      this.getWechatUserInfo();
+    } else {
+      this.showError('请允许获取用户信息以完成登录');
+    }
+  },
+
   getWechatUserInfo() {
     const { isLoading } = this.data;
     if (isLoading) return;
@@ -241,12 +261,13 @@ onWechatUserInfo(e) {
               success: (res) => {
                 const result = res.result;
                 if (result.success) {
-                  // 确保用户信息包含昵称和头像
+                  // 确保用户信息包含昵称和头像，明确标记非游客
                   this.handleLoginSuccess({
                     ...result.userInfo,
                     nickName: result.userInfo.nickName || userRes.userInfo.nickName,
                     avatarUrl: result.userInfo.avatarUrl || userRes.userInfo.avatarUrl,
-                    role: result.userInfo.role || '普通用户'
+                    role: result.userInfo.role || '普通用户',
+                    isGuest: false // 微信登录用户不是游客
                   }, false);
                 } else {
                   this.showError('微信登录失败：' + (result.message || '服务器验证失败'));
@@ -290,3 +311,4 @@ onWechatUserInfo(e) {
     safeNavigate({ url: '/pages/forgotPassword/forgotPassword' });
   }
 });
+    

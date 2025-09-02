@@ -11,149 +11,126 @@
   color: white;
   border-radius: 0 0 30rpx 30rpx;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+}
+
+.welcome-content {
+  flex: 1;
 }
 
 .welcome-text {
   font-size: 36rpx;
-  font-weight: bold;
+  font-weight: 500;
   margin-bottom: 10rpx;
 }
 
 .welcome-subtext {
   font-size: 26rpx;
   opacity: 0.9;
+  margin-bottom: 20rpx;
 }
 
-/* 用户头像样式 - 替换右侧图标 */
+.login-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  margin-top: 10rpx;
+}
+
 .welcome-extra {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  border: 3rpx solid rgba(255, 255, 255, 0.3);
-  background-color: white;
-  padding: 5rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 游客头像和普通用户头像统一样式 */
 .user-avatar {
-  width: 100%;
-  height: 100%;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  object-fit: cover;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
 }
 
-/* 移除原天气图标样式 */
-.welcome-icon {
-  display: none;
-}
-
-/* 统计卡片 - 增强视觉层次 */
+/* 统计卡片样式 */
 .stats-container {
   display: flex;
-  justify-content: space-around;
-  padding: 30rpx;
-  margin: -20rpx 30rpx 0;
+  padding: 20rpx 15rpx;
+  gap: 15rpx;
 }
 
 .stat-card {
   flex: 1;
-  margin: 0 15rpx;
-  padding: 25rpx 0;
   background-color: white;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
+  padding: 25rpx 15rpx;
   text-align: center;
-  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s, box-shadow 0.3s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
-.stat-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 3rpx 10rpx rgba(0, 0, 0, 0.08);
-}
-
-/* 卡片顶部标识线 - 增强识别度 */
-.stat-card.total {
-  border-top: 6rpx solid #3498db;
-}
-
-.stat-card.available {
-  border-top: 6rpx solid #2ecc71;
-}
-
-.stat-card.borrowed {
-  border-top: 6rpx solid #e67e22;
-}
-
-/* 统计卡片图标 - 优化显示效果 */
 .stat-icon {
-  width: 48rpx;
-  height: 48rpx;
-  margin-bottom: 15rpx;
-  display: block;
-  filter: drop-shadow(0 2rpx 2rpx rgba(0, 0, 0, 0.1));
+  width: 60rpx;
+  height: 60rpx;
+  margin: 0 auto 15rpx;
 }
 
-/* 数值样式 - 增强视觉重点 */
 .stat-value {
-  font-size: 42rpx;
+  font-size: 40rpx;
   font-weight: bold;
-  margin-bottom: 10rpx;
-  line-height: 1.2;
-}
-
-/* 数值颜色 - 统一主题色应用 */
-.stat-card.total .stat-value {
-  color: #3498db;
-}
-
-.stat-card.available .stat-value {
-  color: #2ecc71;
-}
-
-.stat-card.borrowed .stat-value {
-  color: #e67e22;
+  color: #333;
+  margin-bottom: 5rpx;
 }
 
 .stat-label {
   font-size: 26rpx;
   color: #666;
-  letter-spacing: 0.5rpx;
 }
 
-/* 通用区域样式 - 优化阴影效果 */
-.section {
-  margin: 30rpx;
-  background-color: white;
-  border-radius: 20rpx;
-  padding: 25rpx 30rpx;
-  box-shadow: 0 3rpx 12rpx rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.3s;
-}
-
-.section:hover {
-  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.06);
-}
-
+/* 区域标题样式 */
 .section-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 25rpx;
-  padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: 25rpx 30rpx 15rpx;
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-/* 操作记录图标容器 */
+.section-title text {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.sync-info {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.sync-success {
+  color: #07c160;
+  font-size: 24rpx;
+}
+
+.sync-failed {
+  color: #f53f3f;
+  font-size: 24rpx;
+}
+
+.sync-default {
+  color: #999;
+  font-size: 24rpx;
+}
+
+.sync-time {
+  color: #999;
+  font-size: 22rpx;
+}
+
+/* 活动记录样式 */
+.activity-list-container {
+  padding: 0 30rpx 20rpx;
+}
+
 .operation-icon-container {
   margin-right: 15rpx;
   flex-shrink: 0;
@@ -202,10 +179,11 @@
   justify-content: center;
   margin-right: 20rpx;
   flex-shrink: 0;
+  position: relative;
 }
 
 /* 操作记录图标 - 调整大小 */
-.activity-icon img {
+.activity-icon-img {
   width: 36rpx;
   height: 36rpx;
 }
@@ -227,6 +205,53 @@
   background-color: rgba(231, 76, 60, 0.15);
 }
 
+.activity-icon-restore {
+  background-color: rgba(155, 89, 182, 0.15);
+}
+
+.activity-icon-other {
+  background-color: rgba(149, 165, 166, 0.15);
+}
+
+/* 活动类型标签 */
+.activity-badge {
+  position: absolute;
+  bottom: -5rpx;
+  right: -5rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  color: white;
+  font-size: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activity-icon-add .activity-badge {
+  background-color: #2ecc71;
+}
+
+.activity-icon-lend .activity-badge {
+  background-color: #e67e22;
+}
+
+.activity-icon-return .activity-badge {
+  background-color: #3498db;
+}
+
+.activity-icon-delete .activity-badge {
+  background-color: #e74c3c;
+}
+
+.activity-icon-restore .activity-badge {
+  background-color: #9b59b6;
+}
+
+.activity-icon-other .activity-badge {
+  background-color: #7f8c8d;
+}
+
 .activity-content {
   flex: 1;
 }
@@ -236,6 +261,12 @@
   color: #333;
   margin-bottom: 5rpx;
   line-height: 1.4;
+}
+
+.view-detail {
+  color: #3498db;
+  font-size: 24rpx;
+  margin-left: 10rpx;
 }
 
 .activity-time {

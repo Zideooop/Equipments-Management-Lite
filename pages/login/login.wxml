@@ -74,12 +74,12 @@
     <!-- 微信快捷登录 -->
     <button 
   class="wechat-login" 
-  open-type="getUserInfo" 
-  bindgetuserinfo="onWechatUserInfo"
+  bindtap="wechatQuickLogin"
 >
   <image src="/images/function/func-wechat.png" mode="widthFix" class="wechat-icon" />
   <text>微信快捷登录</text>
 </button>
+
      <!-- 新增注册入口 -->
   <view class="register-link" bindtap="goToRegister">
     还没有账号？立即注册
@@ -107,3 +107,4 @@
     管理员入口
   </view>
 </view>
+    

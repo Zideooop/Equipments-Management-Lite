@@ -1,0 +1,171 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-title">设置</view>
+  
+  <!-- 返回按钮 -->
+  <view class="back-btn" bindtap="onBack">
+    <image src="/images/function/func-back.png" mode="widthFix" />
+  </view>
+
+  <!-- 账户设置 -->
+  <view class="setting-section">
+    <view class="section-title">账户设置</view>
+    
+    <view class="setting-item" bindtap="navigateToEditProfile">
+      <view class="setting-icon">
+        <image src="/images/function/func-user.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">个人信息</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view class="setting-item" bindtap="changePassword">
+      <view class="setting-icon">
+        <image src="/images/function/func-password.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">修改密码</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view wx:if="{{!isGuest}}" class="setting-item danger" bindtap="confirmLogout">
+      <view class="setting-icon">
+        <image src="/images/function/func-logout.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">退出登录</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+  </view>
+
+  <!-- 功能设置 -->
+  <view class="setting-section">
+    <view class="section-title">功能设置</view>
+    
+    <view class="setting-item toggle-item">
+      <view class="setting-icon">
+        <image src="/images/function/func-notification.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">消息通知</view>
+      <view class="toggle-switch">
+        <switch 
+          checked="{{settings.notification}}" 
+          bindchange="toggleSetting" 
+          data-key="notification"
+        />
+      </view>
+    </view>
+    
+    <view class="setting-item toggle-item">
+      <view class="setting-icon">
+        <image src="/images/function/func-sync.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">自动同步数据</view>
+      <view class="toggle-switch">
+        <switch 
+          checked="{{settings.autoSync}}" 
+          bindchange="toggleSetting" 
+          data-key="autoSync"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 主题设置 -->
+  <view class="setting-section">
+    <view class="section-title">主题设置</view>
+    
+    <view class="setting-item" bindtap="showThemeModeSelect">
+      <view class="setting-icon">
+        <image src="/images/function/func-theme-mode.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">主题模式</view>
+      <view class="theme-mode-text">
+        {{themeModeText}}
+      </view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view class="setting-item toggle-item" wx:if="{{settings.theme.mode !== 'auto'}}">
+      <view class="setting-icon">
+        <image src="/images/function/func-theme.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">深色模式</view>
+      <view class="toggle-switch">
+        <switch 
+          checked="{{settings.theme.darkMode}}" 
+          bindchange="toggleSetting" 
+          data-key="theme.darkMode"
+        />
+      </view>
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-icon">
+        <image src="/images/function/func-theme-color.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">主题颜色</view>
+      <view class="theme-colors">
+        <view class="color-option {{settings.theme.color === 'blue' ? 'active' : ''}}" 
+              style="background-color: #3498db;" 
+              bindtap="setThemeColor" 
+              data-color="blue"></view>
+        <view class="color-option {{settings.theme.color === 'green' ? 'active' : ''}}" 
+              style="background-color: #2ecc71;" 
+              bindtap="setThemeColor" 
+              data-color="green"></view>
+        <view class="color-option {{settings.theme.color === 'orange' ? 'active' : ''}}" 
+              style="background-color: #e67e22;" 
+              bindtap="setThemeColor" 
+              data-color="orange"></view>
+        <view class="color-option {{settings.theme.color === 'purple' ? 'active' : ''}}" 
+              style="background-color: #9b59b6;" 
+              bindtap="setThemeColor" 
+              data-color="purple"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 系统设置 -->
+  <view class="setting-section">
+    <view class="section-title">系统设置</view>
+    
+    <view class="setting-item" bindtap="clearCache">
+      <view class="setting-icon">
+        <image src="/images/function/func-clean.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">清理缓存</view>
+      <view class="cache-size">{{cacheSize}}</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view class="setting-item" bindtap="checkForUpdate">
+      <view class="setting-icon">
+        <image src="/images/function/func-update.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">检查更新</view>
+      <view class="version-text">v{{version}}</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view class="setting-item" bindtap="showAboutModal">
+      <view class="setting-icon">
+        <image src="/images/function/func-about.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">关于我们</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+    
+    <view class="setting-item" bindtap="showPrivacyPolicy">
+      <view class="setting-icon">
+        <image src="/images/function/func-privacy.png" mode="widthFix" />
+      </view>
+      <view class="setting-text">隐私政策</view>
+      <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    版本号 v{{version}}
+  </view>
+</view>
+    

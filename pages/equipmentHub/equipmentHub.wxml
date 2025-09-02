@@ -1,0 +1,252 @@
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="top-nav">
+    <view class="nav-title">器材管理中心</view>
+    <view class="nav-actions">
+      <image 
+        src="/images/function/func-help.png" 
+        mode="widthFix" 
+        class="help-icon"
+        bindtap="showHelpGuide"
+      />
+    </view>
+  </view>
+
+  <!-- 功能选项卡 -->
+  <view class="tabs">
+    <view 
+      class="tab-item {{activeTab === 'barcode' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="barcode"
+    >
+      条码生成
+    </view>
+    <view 
+      class="tab-item {{activeTab === 'list' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="list"
+    >
+      出入库清单
+    </view>
+  </view>
+
+  <!-- 条码生成功能区 -->
+  <view wx:if="{{activeTab === 'barcode'}}" class="tab-content">
+    <view class="card">
+      <view class="form-group">
+        <view class="form-label">选择操作类型</view>
+        <picker 
+          class="form-control"
+          value="{{operationTypeIndex}}" 
+          range="{{operationTypes}}"
+          bindchange="onOperationTypeChange"
+        >
+          {{operationTypes[operationTypeIndex]}}
+        </picker>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">选择器材</view>
+        <picker 
+          class="form-control"
+          value="{{selectedEquipmentIndex}}" 
+          range="{{equipmentNames}}"
+          bindchange="onEquipmentChange"
+        >
+          {{selectedEquipmentIndex >= 0 ? equipmentNames[selectedEquipmentIndex] : '请选择器材'}}
+        </picker>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">条码类型</view>
+        <view class="radio-group">
+          <label class="radio-item">
+            <radio value="qr" checked="{{codeType === 'qr'}}" bindchange="onCodeTypeChange" data-type="qr"/>
+            <text>二维码</text>
+          </label>
+          <label class="radio-item">
+            <radio value="bar" checked="{{codeType === 'bar'}}" bindchange="onCodeTypeChange" data-type="bar"/>
+            <text>条形码</text>
+          </label>
+        </view>
+      </view>
+      
+      <view class="form-group" wx:if="{{selectedEquipment}}">
+        <view class="equipment-info">
+          {{selectedEquipment.name}} - {{selectedEquipment.specification}}
+        </view>
+        
+        <view class="code-container">
+          <image 
+            src="{{codeUrl}}" 
+            mode="widthFix" 
+            class="code-image"
+            wx:if="{{codeUrl}}"
+          />
+          <view wx:else class="loading-icon"></view>
+        </view>
+        
+        <view class="code-desc">
+          <text>扫描可查看器材信息</text>
+          <text class="line-break">器材ID: {{selectedEquipment.id}}</text>
+        </view>
+      </view>
+      
+      <view class="btn-group" wx:if="{{selectedEquipment}}">
+        <view class="btn btn-secondary" bindtap="saveCode">保存图片</view>
+        <view class="btn btn-primary" bindtap="addToInventoryList">添加到清单</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 出入库清单功能区 -->
+  <view wx:if="{{activeTab === 'list'}}" class="tab-content">
+    <view class="list-header">
+      <view class="list-title">当前{{currentOperationType}}清单</view>
+      <view class="list-actions">
+        <view class="btn btn-sm btn-outline" bindtap="clearList">清空</view>
+        <view class="btn btn-sm btn-primary" bindtap="generateInventorySheet">生成清单</view>
+      </view>
+    </view>
+    
+    <!-- 最近器材快捷添加面板 -->
+    <view class="recent-panel" wx:if="{{recentEquipment.length > 0}}">
+      <view class="panel-title" bindtap="toggleRecentPanel">
+        {{currentOperationType === '入库' ? '最近出库未归还' : '最近新增器材'}}
+        ({{recentEquipment.length}})
+      </view>
+      
+      <view class="recent-grid" wx:if="{{showRecentPanel}}">
+        <view 
+          class="recent-item" 
+          wx:for="{{recentEquipment}}" 
+          wx:key="id"
+          bindtap="addFromRecent"
+          data-index="{{index}}"
+        >
+          <view class="recent-name">{{item.name}}</view>
+          <view class="recent-spec">{{item.specification}}</view>
+          <view class="recent-qty">
+            {{currentOperationType === '入库' ? '应还: ' : '数量: '}}{{item.quantity || 1}}
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 差异提示 -->
+    <view class="difference-hint" wx:if="{{currentOperationType === '入库' && hasQuantityDifference}}">
+      <image src="/images/status/status-warning.png" mode="widthFix" class="hint-icon" />
+      <text>存在数量差异，请确认是否无误</text>
+    </view>
+    
+    <view class="card">
+      <view wx:if="{{inventoryList.length === 0}}" class="empty-list">
+        <image src="/images/status/empty-list.png" mode="widthFix" class="empty-icon" />
+        <text>清单为空</text>
+        <text class="hint">可从条码生成页添加器材到清单</text>
+      </view>
+      
+      <view class="inventory-list" wx:else>
+        <view class="list-item header">
+          <view class="col col-name">器材名称</view>
+          <view class="col col-spec">规格</view>
+          <view class="col col-qty">
+            {{currentOperationType === '入库' ? '应入数量' : '出库数量'}}
+          </view>
+          <view class="col col-actual" wx:if="{{currentOperationType === '入库'}}">
+            实际入库数量
+          </view>
+          <view class="col col-check" wx:if="{{currentOperationType === '入库'}}">
+            已核对
+          </view>
+          <view class="col col-actions">操作</view>
+        </view>
+        
+        <view 
+          class="list-item {{item.checked ? 'checked' : ''}} {{currentOperationType === '入库' && item.actualQty !== item.quantity ? 'has-difference' : ''}}" 
+          wx:for="{{inventoryList}}" 
+          wx:key="id"
+        >
+          <view class="col col-name">{{item.name}}</view>
+          <view class="col col-spec">{{item.specification}}</view>
+          <view class="col col-qty">{{item.quantity}}</view>
+          
+          <!-- 入库场景显示实际数量输入框和核对状态 -->
+          <view class="col col-actual" wx:if="{{currentOperationType === '入库'}}">
+            <input 
+              type="number" 
+              min="0"
+              class="actual-qty-input"
+              value="{{item.actualQty !== undefined ? item.actualQty : item.quantity}}"
+              bindinput="updateActualQty"
+              data-index="{{index}}"
+            />
+          </view>
+          
+          <view class="col col-check" wx:if="{{currentOperationType === '入库'}}">
+            <checkbox 
+              checked="{{item.checked}}"
+              bindchange="toggleChecked"
+              data-index="{{index}}"
+            />
+          </view>
+          
+          <view class="col col-actions">
+            <view class="action-btn delete" bindtap="removeFromList" data-index="{{index}}">
+              <image src="/images/function/func-delete.png" mode="widthFix" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 清单备注 -->
+    <view class="card" wx:if="{{inventoryList.length > 0}}">
+      <view class="form-group">
+        <view class="form-label">备注信息</view>
+        <textarea 
+          class="form-control"
+          placeholder="请输入出入库备注（如经办人、原因等）"
+          value="{{listRemark}}"
+          bindinput="onRemarkChange"
+        ></textarea>
+      </view>
+      
+      <view class="form-group">
+        <view class="form-label">负责人</view>
+        <input 
+          class="form-control"
+          placeholder="请输入负责人姓名"
+          value="{{listManager}}"
+          bindinput="onManagerChange"
+        ></input>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{activeTab === 'list' && inventoryList.length > 0}}">
+    <view class="total-info">
+      <text>合计: {{inventoryList.length}} 项</text>
+      <text class="difference-text" wx:if="{{currentOperationType === '入库' && hasQuantityDifference}}">
+        (存在数量差异)
+      </text>
+    </view>
+    <view class="bottom-actions">
+      <view class="btn btn-secondary" bindtap="saveAsDraft">保存草稿</view>
+      <view class="btn btn-primary" bindtap="confirmOperation">确认{{currentOperationType}}</view>
+    </view>
+  </view>
+
+  <!-- 加载弹窗 -->
+  <view class="loading-container" wx:if="{{showLoading}}">
+    <view class="loading-icon"></view>
+    <view class="loading-text">{{loadingText}}</view>
+  </view>
+
+  <!-- 成功提示弹窗 -->
+  <view class="toast" wx:if="{{showToast}}">
+    <view class="toast-content">{{toastMessage}}</view>
+  </view>
+</view>
+    

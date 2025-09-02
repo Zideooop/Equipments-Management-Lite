@@ -1,0 +1,151 @@
+.container {
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+  padding-top: 80rpx;
+  position: relative;
+  }
+  
+  /* 页面标题 */
+  .page-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var (--text-primary);
+  text-align: center;
+  margin-bottom: 40rpx;
+  }
+  
+  /* 返回按钮 */
+  .back-btn {
+  position: absolute;
+  top: 30rpx;
+  left: 30rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  }
+  
+  .back-btn image {
+  width: 30rpx;
+  height: 30rpx;
+  }
+  
+  /* 设置区块 */
+  .setting-section {
+  background-color: var (--bg-primary);
+  border-radius: 20rpx;
+  margin: 0 20rpx 20rpx;
+  overflow: hidden;
+  }
+  
+  /* 区块标题 */
+  .section-title {
+  font-size: 26rpx;
+  color: var (--text-tertiary);
+  padding: 20rpx 30rpx;
+  background-color: var (--bg-tertiary);
+  }
+  
+  /* 设置项 */
+  .setting-item {
+  display: flex;
+  align-items: center;
+  padding: 0 30rpx;
+  height: 100rpx;
+  border-bottom: 1rpx solid var (--border-color);
+  }
+  
+  .setting-item:last-child {
+  border-bottom: none;
+  }
+  
+  /* 设置项图标 */
+  .setting-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 25rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  }
+  
+  .setting-icon image {
+  width: 48rpx;
+  height: 48rpx;
+  }
+  
+  /* 设置项文本 */
+  .setting-text {
+  flex: 1;
+  font-size: 30rpx;
+  color: var (--text-primary);
+  }
+  
+  /* 箭头图标 */
+  .arrow-icon {
+  width: 24rpx;
+  height: 44rpx;
+  opacity: 0.5;
+  }
+  
+  /* 带开关的设置项 */
+  .toggle-item {
+  justify-content: space-between;
+  }
+  
+  .toggle-switch {
+  margin-right: 20rpx;
+  }
+  
+  /* 缓存大小文本 */
+  .cache-size {
+  font-size: 26rpx;
+  color: var (--text-tertiary);
+  margin-right: 20rpx;
+  }
+  
+  /* 危险操作样式 */
+  .danger .setting-text {
+  color: var (--danger-color);
+  }
+  
+  /* 版本信息 */
+  .version-info {
+  text-align: center;
+  font-size: 24rpx;
+  color: var (--text-tertiary);
+  padding: 40rpx 0;
+  }
+  
+  /* 主题设置样式 */
+  .theme-mode-text {
+  font-size: 26rpx;
+  color: var (--text-tertiary);
+  margin-right: 20rpx;
+  }
+  
+  .theme-colors {
+  display: flex;
+  gap: 15rpx;
+  margin-right: 20rpx;
+  }
+  
+  .color-option {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid transparent;
+  }
+  
+  .color-option.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3rpx rgba(0,0,0,0.1);
+  }
+  
+  /* 版本文本样式 */
+  .version-text {
+  font-size: 26rpx;
+  color: var (--text-tertiary);
+  margin-right: 20rpx;
+  }
