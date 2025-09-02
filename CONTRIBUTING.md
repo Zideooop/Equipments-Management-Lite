@@ -9,8 +9,8 @@
 
 2. **克隆仓库到本地**
    ```bash
-   git clone https://github.com/your-username/equipment-management-miniprogram.git
-   cd equipment-management-miniprogram
+   git clone https://github.com/Zideooop/Equipments-Management-Lite.git
+   cd Equipments-Management-Lite
    ```
 
 3. **创建分支**
@@ -42,7 +42,7 @@
 5. **同步上游代码**
    - 在提交PR前，同步上游仓库的最新代码
    ```bash
-   git remote add upstream https://github.com/original-owner/equipment-management-miniprogram.git
+   git remote add upstream https://github.com/Equipments-Management-Lite.git
    git fetch upstream
    git merge upstream/develop
    ```
