@@ -21,7 +21,7 @@
     "localPlugins": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-    "condition": false,
+    "condition": true,
     "swc": false,
     "disableSWC": true,
     "babelSetting": {
@@ -39,6 +39,9 @@
   "npm": {},
   "cloudfunctionRoot": "cloudfunctions/",
   "cloudEnv": "cloudbase-5gx4izq3da5eda5e",
-  "simulatorPluginLibVersion": {},
-  "editorSetting": {}
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "3.6.5-39"
+  },
+  "editorSetting": {},
+  "projectArchitecture": "multiPlatform"
 }

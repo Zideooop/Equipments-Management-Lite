@@ -6,11 +6,12 @@
     "pages/login/login", 
     "pages/register/register", 
     "pages/recycleBin/recycleBin", 
+    "pages/setting/setting",
     "pages/adminLogin/adminLogin", 
     "pages/add/add", 
     "pages/batchAdd/batchAdd",
-    "pages/equipmentDetail/equipmentDetail"
-
+    "pages/equipmentDetail/equipmentDetail",
+    "pages/equipmentHub/equipmentHub"
   ],
   "window": {
     "backgroundTextStyle": "light",
