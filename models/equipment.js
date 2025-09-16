@@ -14,6 +14,8 @@ class Equipment {
     
     // 基础属性
     this.id = data.id || generateEquipmentId(data.type);
+     // 新增code字段的初始化（关键修复）
+    this.code = data.code || ''; // 显式初始化编号字段
     this.name = data.name || '';
     this.type = data.type || '';
     this.specification = data.specification || '';
@@ -41,14 +43,14 @@ class Equipment {
    * 数据验证
    * @returns {Object} 验证结果
    */
-  validate() {
-    if (!this.name.trim()) {
-      return { valid: false, message: '器材名称不能为空' };
-    }
-    
-    if (!this.type.trim()) {
-      return { valid: false, message: '请输入器材类型' };
-    }
+ // 完善验证逻辑，确保code必填（根据业务需求）
+ validate() {
+  if (!this.code.trim()) { // 新增编号校验
+    return { valid: false, message: '器材编号不能为空' };
+  }
+  if (!this.name.trim()) {
+    return { valid: false, message: '器材名称不能为空' };
+  }
     
     if (this.quantity < 1 || isNaN(this.quantity)) {
       return { valid: false, message: '数量必须是大于0的数字' };
