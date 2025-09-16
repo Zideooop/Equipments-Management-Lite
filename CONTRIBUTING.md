@@ -1,83 +1,129 @@
 # 贡献指南
 
-感谢您对设备管理小程序项目的关注与支持！我们欢迎任何形式的贡献，包括但不限于bug修复、功能改进、文档完善等。
+欢迎参与设备管理小程序的开发与改进！无论是提交代码、报告Bug、提出建议还是完善文档，你的贡献都将帮助项目变得更好。本指南将说明如何高效参与贡献。
 
-## 贡献流程
+## 贡献方式
 
-1. **Fork 仓库**
-   - 点击GitHub仓库页面右上角的"Fork"按钮，创建自己的仓库副本
+### 1. 报告Bug
+若发现功能异常或潜在问题，请通过GitHub Issues提交Bug报告，内容应包括：
+- 详细的复现步骤（从打开小程序到出现问题的完整操作）
+- 实际结果与预期结果的对比
+- 截图或录屏（如适用）
+- 环境信息：微信开发者工具版本、操作系统、小程序基础库版本
 
-2. **克隆仓库到本地**
-   ```bash
-   git clone https://github.com/Zideooop/Equipments-Management-Lite.git
-   cd Equipments-Management-Lite
-   ```
+示例：标题：[Bug] 批量删除设备后同步失败
 
-3. **创建分支**
-   - 从`develop`分支创建新的功能分支
-   ```bash
-   git checkout develop
-   git checkout -b feature/your-feature-name
-   ```
-   - 分支命名规范：
-     - 新功能：`feature/功能名称`
-     - Bug修复：`fix/问题描述`
-     - 文档更新：`docs/文档名称`
+复现步骤：
+1. 进入设备列表页
+2. 长按设备A进入多选模式
+3. 选择3台设备并点击删除
+4. 进入个人中心点击"同步数据"
 
-4. **开发与提交**
-   - 进行代码修改，确保符合项目代码规范
-   - 提交代码时，使用清晰的提交信息
-   ```bash
-   git commit -m "feat: 添加XXX功能"
-   ```
-   - 提交信息规范：
-     - `feat`: 新功能
-     - `fix`:  bug修复
-     - `docs`: 文档更新
-     - `style`: 代码格式调整
-     - `refactor`: 代码重构
-     - `test`: 测试相关
-     - `chore`: 构建过程或辅助工具变动
+实际结果：
+同步提示失败，错误信息为"同步冲突"
 
-5. **同步上游代码**
-   - 在提交PR前，同步上游仓库的最新代码
-   ```bash
-   git remote add upstream https://github.com/Equipments-Management-Lite.git
-   git fetch upstream
-   git merge upstream/develop
-   ```
+预期结果：
+成功同步删除操作，云端数据与本地一致
 
-6. **提交Pull Request**
-   - 将你的分支推送到自己的仓库
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-   - 在GitHub页面上创建Pull Request，目标分支选择`develop`
+环境：
+微信开发者工具 v1.06.2504030
+Windows 10
+基础库 v3.10.0
+### 2. 提出功能建议
+如需新增功能，请先确认Issues中是否已有类似提议。提交建议时应说明：
+- 功能用途和应用场景
+- 对现有功能的影响（如是否需要修改核心逻辑）
+- 可能的实现思路（可选）
 
-## 代码规范
+### 3. 代码贡献
+通过Pull Request提交代码修改，流程如下：
 
-1. 遵循JavaScript Standard Style规范
-2. 微信小程序开发遵循官方开发规范
-3. 代码注释清晰，特别是复杂逻辑部分
-4. 新增功能需要添加相应的测试代码
-5. 确保所有代码通过ESLint检查
+#### 步骤1： Fork仓库
+访问项目仓库页面，点击右上角"Fork"按钮创建个人副本。
 
-## Issue反馈
+#### 步骤2： 克隆到本地git clone https://github.com/你的用户名/equipment-management-miniprogram.git
+cd equipment-management-miniprogram
+#### 步骤3： 创建分支
+根据修改类型创建分支：
+- 新功能：`feature/功能名称`（例：`feature/barcode-scan`）
+- Bug修复：`fix/问题描述`（例：`fix/sync-conflict`）
+- 文档更新：`docs/文档名称`（例：`docs/api-reference`）
+- 代码优化：`refactor/模块名称`（例：`refactor/sync-engine`）
+git checkout -b feature/barcode-scan
+#### 步骤4： 开发规范
+- **代码风格**：
+  - 遵循ESLint配置（项目已集成）
+  - 变量命名：小驼峰式（`equipmentList`）
+  - 常量命名：全大写+下划线（`MAX_RETRY_COUNT`）
+  - 函数命名：动词+名词（`calculateInventory`）
+  - 组件命名：短横线分隔（`equipment-card`）
 
-1. 发现bug或有功能建议时，请提交Issue
-2. 提交bug报告时，请包含：
-   - 复现步骤
-   - 预期结果
-   - 实际结果
-   - 截图（如有）
-   - 环境信息（微信开发者工具版本、操作系统等）
-3. 提交功能建议时，请说明功能用途和实现思路
+- **功能实现**：
+  - 新增功能需包含对应的使用文档
+  - 复杂逻辑需添加注释说明设计思路
+  - 涉及数据操作需考虑边界情况（空值、异常数据）
 
+- **测试要求**：
+  - 修复Bug需包含复现测试用例
+  - 新功能需提供基本功能测试步骤
+
+#### 步骤5： 提交修改
+提交信息需遵循以下格式：类型(模块): 简明描述
+
+详细说明（可选，用于复杂修改）
+类型包括：
+- `feat`：新功能
+- `fix`：Bug修复
+- `docs`：文档更新
+- `style`：代码格式调整（不影响功能）
+- `refactor`：代码重构
+- `test`：测试相关
+- `chore`：构建/依赖相关
+
+示例：feat(inventory): 新增扫码入库功能
+
+1. 集成微信扫码API
+2. 支持通过设备条形码快速匹配库存
+3. 扫码结果自动填充至入库表单
+提交命令：git add .
+git commit -m "feat(inventory): 新增扫码入库功能"
+git push origin feature/barcode-scan
+#### 步骤6： 提交Pull Request
+- 访问原仓库页面，点击"Compare & pull request"
+- 目标分支选择`develop`（主分支`main`仅用于发布）
+- 填写PR描述，包括：
+  - 修改目的和实现方式
+  - 测试步骤
+  - 相关Issue链接（如`Fixes #123`）
+
+## 代码审查标准
+
+PR将从以下方面进行评审：
+1. 代码是否符合项目规范和风格
+2. 功能是否完整实现且无副作用
+3. 是否考虑异常情况和边界条件
+4. 文档是否同步更新
+5. 是否破坏现有功能
+
+评审通过后，维护者将合并PR。若需要修改，会在PR评论中说明具体建议。
+
+## 开发环境设置
+
+### 本地开发环境
+1. 安装微信开发者工具（v1.06.2504030+）
+2. 克隆代码并导入项目
+3. 配置云开发环境（可使用测试环境）
+4. 安装ESLint插件（推荐VSCode配合ESLint插件）
+
+### 开发命令# 检查代码规范
+npm run lint
+
+# 自动修复部分格式问题
+npm run lint:fix
 ## 行为准则
+- 尊重他人贡献，对不同意见保持理性讨论
+- 聚焦问题本身，避免人身攻击或无关争论
+- 对自己提交的代码负责，及时响应反馈
+- 遵守开源协议，不引入有许可证冲突的依赖
 
-- 保持友好和尊重的沟通
-- 聚焦于问题本身，而非个人
-- 接受建设性的批评
-- 对自己的代码负责
-
-再次感谢您的贡献，让我们一起完善这个项目！
+感谢你的贡献，让我们一起打造更好的设备管理工具！
