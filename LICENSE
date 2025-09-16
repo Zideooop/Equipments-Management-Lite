@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 像素影迹工作室设备管理小程序开发团队
+Copyright (c) 2025 像素影迹工作室 设备管理小程序开发团队
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-ADDITIONAL RESTRICTIONS:
-1. Commercial profit-making activities using this Software or its derivatives are strictly prohibited, including but not limited to:
-   - Selling this Software or its modified versions for a fee
-   - Providing this Software as part of paid services
-   - Monetizing through advertising, paid features, or other commercial means
-2. The open source declaration and copyright information in this Software must not be removed or modified.
-3. When引用 or using code from this project, original author information and license declaration must be retained.
+=== 项目特有限制 ===
+本项目在MIT许可证基础上增加以下限制：
+1. 严禁任何形式的商业获利行为，包括但不限于收费售卖、作为付费服务的一部分提供、通过广告或付费解锁功能获利等。
+2. 禁止移除或修改本项目中的开源声明和版权信息。
+3. 引用或使用本项目代码时，需保留原作者信息和本许可证声明。
+4. 违反上述限制的行为，项目作者保留追究法律责任的权利。
