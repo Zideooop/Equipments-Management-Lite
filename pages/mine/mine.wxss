@@ -5,37 +5,83 @@
   font-size: 28rpx;
 }
 
-/* 用户信息头部 */
+/* 用户信息头部样式 */
 .user-header {
   display: flex;
   align-items: center;
-  padding: 40rpx 30rpx;
+  padding: 30rpx 30rpx 40rpx;
   background-color: var(--bg-primary);
   margin-bottom: 20rpx;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.03);
+}
+
+/* 未登录状态布局优化 */
+.is-guest .user-info {
+  margin-right: auto; /* 消除右侧空白 */
+}
+
+.is-guest .user-header {
+  background-color: #fafafa;
+}
+
+/* 头像卡片样式 */
+.user-avatar-container {
+  position: relative;
+  margin-right: 30rpx;
+  z-index: 2;
 }
 
 .user-avatar {
-  width: 140rpx;
-  height: 140rpx;
+  width: 150rpx;
+  height: 150rpx;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 30rpx;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 4rpx solid transparent;
+}
+
+.is-guest .user-avatar {
+  border-color: #e5e7eb;
+  background-color: #f3f4f6;
+}
+
+:not(.is-guest) .user-avatar {
+  border-color: var(--primary-color-light);
 }
 
 .avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
+.user-avatar-container:active .user-avatar {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+.user-avatar-container:active .avatar-img {
+  transform: scale(1.08);
+}
+
+/* 用户信息区域样式 */
 .user-info {
   flex: 1;
+  padding: 15rpx 0;
+  min-width: 0;
 }
 
 .user-name {
-  font-size: 34rpx;
-  font-weight: bold;
+  font-size: 36rpx;
+  font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   display: flex;
   align-items: center;
 }
@@ -46,47 +92,98 @@
   margin-left: 10rpx;
 }
 
-.user-role {
-  font-size: 26rpx;
-  color: var(--text-secondary);
-  margin-top: 10rpx;
+.user-status-role {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+  flex-wrap: wrap;
+  margin-bottom: 5rpx;
 }
 
+.status-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+}
+
+.status-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  margin-right: 6rpx;
+}
+
+.status-online {
+  background-color: #07c160;
+}
+
+.status-text {
+  color: var(--text-secondary);
+}
+
+.role-tag {
+  display: flex;
+  align-items: center;
+  padding: 3rpx 15rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.admin-tag {
+  background-color: rgba(255, 159, 28, 0.1);
+  color: #ff9f1c;
+}
+
+.user-tag {
+  background-color: rgba(7, 193, 96, 0.1);
+  color: #07c160;
+}
+
+/* 登录按钮样式 */
 .login-btn {
-  width: 120rpx;
-  height: 60rpx;
-  line-height: 60rpx;
+  min-width: 120rpx;
+  height: 68rpx;
+  line-height: 68rpx;
   text-align: center;
   background-color: var(--primary-color);
   color: #fff;
-  border-radius: 30rpx;
-  font-size: 26rpx;
+  border-radius: 34rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  padding: 0 20rpx;
+  margin-left: 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(7, 193, 96, 0.3);
+  transition: all 0.2s;
 }
 
-/* 功能列表 */
+.login-btn:active {
+  background-color: var(--primary-color-dark);
+  transform: scale(0.96);
+}
+
+/* 功能列表样式（统一化处理） */
 .function-list {
   padding: 0 10rpx;
 }
 
+/* 功能组样式（取消区分） */
 .function-group {
   background-color: var(--bg-primary);
   border-radius: 20rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 15rpx;
   overflow: hidden;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.03);
 }
 
-/* 合并后的器材管理中心入口样式强化 */
-.function-group:first-child .function-item:first-child {
-  background: linear-gradient(90deg, rgba(7, 193, 96, 0.05) 0%, rgba(7, 193, 96, 0) 100%);
-}
-
+/* 功能项样式（移除分组标识） */
 .function-item {
   display: flex;
   align-items: center;
   padding: 0 30rpx;
-  height: 100rpx;
+  height: 110rpx;
   border-bottom: 1rpx solid var(--border-color);
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .function-item:active {
@@ -97,29 +194,27 @@
   border-bottom: none;
 }
 
+/* 功能图标（移除阴影和填充区分） */
 .function-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 52rpx;
+  height: 52rpx;
   margin-right: 25rpx;
+  padding: 10rpx;
+  border-radius: 12rpx;
 }
 
-/* 同步中图标旋转动画 */
 .sync-loading {
   animation: rotate 1.5s linear infinite;
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .function-text {
   flex: 1;
-  font-size: 30rpx;
+  font-size: 32rpx;
   color: var(--text-primary);
 }
 
@@ -127,6 +222,11 @@
   width: 24rpx;
   height: 44rpx;
   opacity: 0.5;
+  transition: transform 0.2s;
+}
+
+.function-item:active .arrow-icon {
+  transform: translateX(5rpx);
 }
 
 .sync-time {
@@ -142,19 +242,24 @@
 
 .logout-btn {
   width: 100%;
-  height: 90rpx;
-  line-height: 90rpx;
+  height: 96rpx;
+  line-height: 96rpx;
   background-color: var(--bg-primary);
   color: var(--danger-color);
   border: 1rpx solid var(--danger-color);
   border-radius: 16rpx;
-  font-size: 30rpx;
+  font-size: 32rpx;
+  transition: all 0.2s;
+}
+
+.logout-btn:active {
+  background-color: rgba(239, 68, 68, 0.05);
 }
 
 /* 底部信息 */
 .footer {
   text-align: center;
-  padding: 40rpx 0;
+  padding: 50rpx 0 30rpx;
   color: var(--text-tertiary);
   font-size: 24rpx;
 }
@@ -162,4 +267,3 @@
 .version {
   margin-bottom: 10rpx;
 }
-    

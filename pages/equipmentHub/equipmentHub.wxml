@@ -53,7 +53,9 @@
           range="{{equipmentNames}}"
           bindchange="onEquipmentChange"
         >
-          {{selectedEquipmentIndex >= 0 ? equipmentNames[selectedEquipmentIndex] : '请选择器材'}}
+        {{selectedEquipmentIndex >= 0 ? (equipmentList[selectedEquipmentIndex].code || equipmentNames[selectedEquipmentIndex]) : '请选择器材'}}
+
+
         </picker>
       </view>
       

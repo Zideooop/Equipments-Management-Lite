@@ -38,7 +38,7 @@ Page({
     return md5(password);
   },
 
-  // 表单验证
+  // 表单验证（取消位数限制）
   validateForm() {
     const { username, password, confirmPassword } = this.data;
     
@@ -47,20 +47,14 @@ Page({
       return false;
     }
     
-    if (username.length < 4) {
-      this.showError('用户名长度不能少于4位');
-      return false;
-    }
+    // 移除用户名长度限制
     
     if (!password.trim()) {
       this.showError('请输入密码');
       return false;
     }
     
-    if (password.length < 6) {
-      this.showError('密码长度不能少于6位');
-      return false;
-    }
+    // 移除密码长度限制
     
     if (password !== confirmPassword) {
       this.showError('两次输入的密码不一致');
@@ -102,7 +96,7 @@ Page({
         
         // 3. 保存用户信息到全局和本地存储
         app.globalData.userInfo = userInfo;
-        wx.setStorageSync('userInfo', userInfo);
+        app.saveEquipmentList('userInfo', userInfo);
         
         // 4. 提示并跳转首页
         wx.showToast({ 

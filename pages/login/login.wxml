@@ -38,6 +38,11 @@
       </view>
     </view>
     
+    <!-- 快捷登录（测试用） -->
+    <view class="quick-login" bindtap="quickLoginTest">
+      <text>测试账号快捷登录</text>
+    </view>
+    
     <!-- 记住密码和忘记密码 -->
     <view class="form-actions">
       <view class="remember-password">
@@ -71,19 +76,44 @@
       </view>
     </view>
     
+    <!-- 分隔线 -->
+    <view class="divider">
+      <view class="divider-line"></view>
+      <view class="divider-text">其他登录方式</view>
+      <view class="divider-line"></view>
+    </view>
+    
     <!-- 微信快捷登录 -->
     <button 
-  class="wechat-login" 
-  bindtap="wechatQuickLogin"
->
-  <image src="/images/function/func-wechat.png" mode="widthFix" class="wechat-icon" />
-  <text>微信快捷登录</text>
-</button>
+      class="wechat-login" 
+      bindtap="wechatQuickLogin"
+    >
+      <image src="/images/function/func-wechat.png" mode="widthFix" class="wechat-icon" />
+      <text>微信快捷登录</text>
+    </button>
 
-     <!-- 新增注册入口 -->
-  <view class="register-link" bindtap="goToRegister">
-    还没有账号？立即注册
-  </view>
+    <!-- 游客登录（突出显示） -->
+    <view class="btn btn-secondary visitor-login" bindtap="visitorLogin">
+      <image src="/images/function/func-guest.png" mode="widthFix" class="visitor-icon" />
+      游客登录（临时使用）
+    </view>
+    
+    <!-- 管理员入口（突出显示） -->
+    <view 
+      class="admin-entry" 
+      bindlongpress="showAdminLogin"
+      wx:if="{{showDebug}}"
+    >
+      <image src="/images/function/role-admin.png" mode="widthFix" class="admin-icon" />
+      管理员专用入口
+    </view>
+    
+    <!-- 注册入口 -->
+    <view class="register-section">
+      <text>还没有账号？</text>
+      <text class="register-link" bindtap="goToRegister">立即注册</text>
+    </view>
+    
     <!-- 错误提示 -->
     <view wx:if="{{showError}}" class="error-message">
       <image src="/images/status/status-error.png" mode="widthFix" class="error-icon" />
@@ -91,20 +121,3 @@
     </view>
   </view>
 </view>
-
-<view class="debug-entries">
-  <!-- 游客登录按钮 -->
-  <view class="btn btn-secondary" bindtap="visitorLogin">
-    游客登录（调试用）
-  </view>
-  
-  <!-- 管理员入口（隐藏式，长按显示） -->
-  <view 
-    class="admin-entry" 
-    bindlongpress="showAdminLogin"
-    wx:if="{{showDebug}}"
-  >
-    管理员入口
-  </view>
-</view>
-    

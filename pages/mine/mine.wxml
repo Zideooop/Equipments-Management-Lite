@@ -1,15 +1,19 @@
 <view class="container">
   <!-- 用户信息头部 -->
-  <view class="user-header">
-    <view class="user-avatar" bindtap="{{isGuest ? 'goToLogin' : 'editProfile'}}">
-      <image 
-        src="{{userInfo.avatarUrl || '/images/page/page-profile.png'}}" 
-        mode="widthFix" 
-        class="avatar-img"
-      />
+  <view class="user-header {{isGuest ? 'is-guest' : ''}}">
+    <view class="user-avatar-container" bindtap="{{isGuest ? 'goToLogin' : 'editProfile'}}">
+      <view class="user-avatar">
+        <image 
+          src="{{userInfo.avatarUrl || '/images/page/page-profile.png'}}" 
+          mode="widthFix" 
+          class="avatar-img"
+          lazy-load="true"
+        />
+      </view>
+      <view wx:if="{{!isGuest}}" class="user-status status-online"></view>
     </view>
     
-    <view class="user-info">
+    <view class="user-info" bindtap="{{isGuest ? 'goToLogin' : ''}}">
       <view class="user-name">
         {{isGuest ? '点击登录' : userInfo.nickName || userInfo.username || '用户'}}
         <image 
@@ -19,8 +23,14 @@
           class="admin-tag"
         />
       </view>
-      <view class="user-role">
-        {{isGuest ? '游客模式' : userInfo.role === 'admin' ? '管理员' : '普通用户'}}
+      <view class="user-status-role">
+        <view wx:if="{{!isGuest}}" class="status-indicator">
+          <view class="status-dot status-online"></view>
+          <view class="status-text">在线</view>
+        </view>
+        <view class="role-tag {{!isGuest && userInfo.role === 'admin' ? 'admin-tag' : 'user-tag'}}">
+          {{!isGuest ? (userInfo.role === 'admin' ? '管理员' : '普通用户') : ''}}
+        </view>
       </view>
     </view>
     
@@ -29,10 +39,9 @@
     </view>
   </view>
 
-  <!-- 功能列表 -->
+  <!-- 功能列表（取消分组区分） -->
   <view class="function-list">
     <view class="function-group">
-      <!-- 合并后的器材管理中心入口 -->
       <view class="function-item" bindtap="navigateToManage">
         <image src="/images/function/func-manage.png" mode="widthFix" class="function-icon" />
         <view class="function-text">器材管理中心</view>
@@ -50,26 +59,20 @@
         <view class="function-text">操作记录</view>
         <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
       </view>
-    </view>
-    
-    <view class="function-group">
+
       <view class="function-item" bindtap="syncData">
-        <!-- 修复图标路径为status目录，并添加同步中显示逻辑 -->
         <image 
           wx:if="{{!isSyncing}}"
           src="/images/status/{{syncStatus === 'success' ? 'status-sync-succeed' : syncStatus === 'failed' ? 'status-sync-failed' : 'status-sync'}}.png" 
           mode="widthFix" 
           class="function-icon"
         />
-        
-        <!-- 同步中显示loading图标 -->
         <image 
           wx:if="{{isSyncing}}"
           src="/images/status/status-sync-loading.png" 
           mode="widthFix" 
           class="function-icon sync-loading"
         />
-        
         <view class="function-text">数据同步</view>
         <view class="sync-time">{{lastSyncTime || '未同步'}}</view>
         <image src="/images/function/func-arrow-right.png" mode="widthFix" class="arrow-icon" />
@@ -90,8 +93,7 @@
 
   <!-- 底部信息 -->
   <view class="footer">
-    <view class="version">版本号 v1.3.8</view>
+    <view class="version">版本号 v1.5.0</view>
     <view class="copyright">© 2025 器材管理系统</view>
   </view>
 </view>
-    

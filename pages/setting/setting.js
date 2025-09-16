@@ -1,266 +1,287 @@
-const app = getApp();
-const { safeNavigate, safeBack } = require('../../utils/navigation.js');
-const themeConfig = require('../../models/theme.js').default; // 修正导入
-
 Page({
   data: {
-    // 版本信息
-    version: '1.3.8',
-    // 缓存大小
-    cacheSize: '0KB',
-    // 功能开关状态
+    // 用户是否为游客模式
+    isGuest: false,
+    // 应用设置
     settings: {
       notification: true,
-      autoSync: false,
-      theme: { ...themeConfig } // 主题设置
+      autoSync: true,
+      theme: {
+        mode: 'auto', // auto, manual
+        darkMode: false,
+        color: 'blue' // blue, green, orange, purple
+      }
     },
-    // 主题模式选项
-    themeModes: [
-      { value: 'auto', text: '跟随系统' },
-      { value: 'light', text: '浅色模式' },
-      { value: 'dark', text: '深色模式' }
-    ],
-    themeModeText: ''
+    // 主题模式文本
+    themeModeText: '跟随系统',
+    // 缓存大小
+    cacheSize: '1.2MB',
+    // 应用版本
+    version: '1.0.0'
   },
 
   onLoad() {
+    // 加载本地存储的设置
     this.loadSettings();
-    this.calculateCacheSize();
+    // 检查用户登录状态
+    this.checkLoginStatus();
+    // 获取缓存大小
+    this.getCacheSize();
+    // 获取应用版本
+    this.getAppVersion();
   },
 
-  // 加载设置
+  // 加载本地存储的设置
   loadSettings() {
-    const savedSettings = wx.getStorageSync('appSettings') || {};
-    // 合并默认设置和保存的设置
-    const settings = { ...this.data.settings, ...savedSettings };
-    
+    const storedSettings = wx.getStorageSync('appSettings');
+    if (storedSettings) {
+      this.setData({
+        settings: storedSettings
+      });
+      this.updateThemeModeText();
+    }
+  },
+
+  // 检查用户登录状态
+  checkLoginStatus() {
+    const userInfo = wx.getStorageSync('userInfo');
     this.setData({
-      settings,
-      themeModeText: this.getThemeModeText(settings.theme.mode)
+      isGuest: !userInfo
     });
   },
 
-  // 获取主题模式显示文本
-  getThemeModeText(mode) {
-    const modeItem = this.data.themeModes.find(item => item.value === mode);
-    return modeItem ? modeItem.text : '跟随系统';
-  },
-
-  // 计算缓存大小
-  calculateCacheSize() {
+  // 获取缓存大小
+  getCacheSize() {
+    // 实际项目中应该计算真实缓存大小
     wx.getStorageInfo({
       success: (res) => {
-        const size = res.currentSize;
-        let cacheSize;
-        if (size < 1024) {
-          cacheSize = `${size}B`;
-        } else if (size < 1024 * 1024) {
-          cacheSize = `${(size / 1024).toFixed(1)}KB`;
-        } else {
-          cacheSize = `${(size / (1024 * 1024)).toFixed(2)}MB`;
+        const size = res.currentSize / 1024; // 转换为MB
+        this.setData({
+          cacheSize: size.toFixed(2) + 'MB'
+        });
+      }
+    });
+  },
+
+  // 获取应用版本
+  getAppVersion() {
+    const version = wx.getAccountInfoSync().miniProgram.version;
+    if (version) {
+      this.setData({
+        version: version
+      });
+    }
+  },
+
+  // 返回上一页
+  onBack() {
+    wx.navigateBack();
+  },
+
+  // 导航到编辑个人信息页面
+  navigateToEditProfile() {
+    wx.navigateTo({
+      url: '/pages/edit-profile/edit-profile'
+    });
+  },
+
+  // 修改密码
+  changePassword() {
+    wx.navigateTo({
+      url: '/pages/change-password/change-password'
+    });
+  },
+
+  // 确认退出登录
+  confirmLogout() {
+    wx.showModal({
+      title: '退出登录',
+      content: '确定要退出当前登录吗？',
+      confirmText: '退出',
+      confirmColor: '#e74c3c',
+      success: (res) => {
+        if (res.confirm) {
+          this.logout();
         }
-        this.setData({ cacheSize });
       }
     });
   },
 
-  // 检测更新功能
-  checkForUpdate() {
-    wx.showLoading({ title: '检测更新中...' });
-    
-    // 微信小程序更新API
-    const updateManager = wx.getUpdateManager();
-    
-    // 检测到有新版本
-    updateManager.onCheckForUpdate((res) => {
-      if (res.hasUpdate) {
-        // 新版本下载完成
-        updateManager.onUpdateReady(() => {
-          wx.hideLoading();
-          wx.showModal({
-            title: '更新提示',
-            content: '发现新版本，是否立即更新？',
-            confirmText: '立即更新',
-            cancelText: '稍后',
-            success: (result) => {
-              if (result.confirm) {
-                // 应用新版本并重启
-                updateManager.applyUpdate();
-              }
-            }
-          });
-        });
-        
-        // 新版本下载失败
-        updateManager.onUpdateFailed(() => {
-          wx.hideLoading();
-          wx.showToast({
-            title: '更新失败，请稍后重试',
-            icon: 'none'
-          });
-        });
-      } else {
-        wx.hideLoading();
-        wx.showToast({
-          title: '当前已是最新版本',
-          icon: 'none'
-        });
-      }
+  // 执行退出登录
+  logout() {
+    wx.removeStorageSync('userInfo');
+    wx.removeStorageSync('token');
+    this.setData({
+      isGuest: true
     });
-  },
-
-  // 显示占位提示
-  showPlaceholderToast() {
+    
     wx.showToast({
-      title: '该功能正在开发中',
+      title: '已退出登录',
       icon: 'none'
     });
-  },
-
-  // 显示关于我们弹窗
-  showAboutModal() {
-    wx.showModal({
-      title: '关于我们',
-      content: '器材管理系统 v' + this.data.version + '\n\n一款专业的器材管理工具，帮助您高效管理各类器材的借还与库存。\n\n© 2025 器材管理系统 版权所有',
-      showCancel: false,
-      confirmText: '我知道了'
-    });
-  },
-
-  // 显示隐私政策弹窗
-  showPrivacyPolicy() {
-    wx.showModal({
-      title: '隐私政策',
-      content: '我们重视您的隐私保护，不会收集您的个人信息。\n\n1. 您的登录信息仅用于身份验证\n2. 器材数据存储在本地或经您授权的云端\n3. 我们不会向第三方分享您的数据\n\n详细隐私政策将在后续版本中提供',
-      showCancel: false,
-      confirmText: '我知道了'
-    });
+    
+    // 跳转到登录页
+    setTimeout(() => {
+      wx.reLaunch({
+        url: '/pages/login/login'
+      });
+    }, 1500);
   },
 
   // 切换设置开关
   toggleSetting(e) {
     const key = e.currentTarget.dataset.key;
-    const newSettings = { ...this.data.settings };
+    const value = e.detail.value;
     
-    // 如果是主题相关设置
+    // 更新嵌套对象的处理
     if (key.includes('.')) {
-      const [parent, child] = key.split('.');
-      newSettings[parent][child] = !newSettings[parent][child];
+      const keys = key.split('.');
+      const newSettings = {...this.data.settings};
+      newSettings[keys[0]][keys[1]] = value;
+      this.setData({
+        settings: newSettings
+      });
     } else {
-      newSettings[key] = !newSettings[key];
+      this.setData({
+        [`settings.${key}`]: value
+      });
     }
     
-    this.setData({ settings: newSettings });
-    wx.setStorageSync('appSettings', newSettings);
+    // 保存设置到本地存储
+    app.saveEquipmentList('appSettings', this.data.settings);
     
-    // 如果是主题设置变更，应用主题
-    if (key.includes('theme.')) {
-      getApp().applyTheme(newSettings.theme);
+    // 如果是主题模式变更，更新显示文本
+    if (key === 'theme.mode') {
+      this.updateThemeModeText();
+    }
+    
+    // 触发主题更新
+    if (key.includes('theme')) {
+      this.updateTheme();
     }
   },
 
-  // 显示主题模式选择器
+  // 更新主题模式文本
+  updateThemeModeText() {
+    const mode = this.data.settings.theme.mode;
+    let text = '跟随系统';
+    if (mode === 'manual') {
+      text = this.data.settings.theme.darkMode ? '深色模式' : '浅色模式';
+    }
+    this.setData({
+      themeModeText: text
+    });
+  },
+
+  // 显示主题模式选择
   showThemeModeSelect() {
-    const { theme } = this.data.settings;
     wx.showActionSheet({
-      itemList: this.data.themeModes.map(item => item.text),
+      itemList: ['跟随系统', '手动切换'],
       success: (res) => {
-        const selectedMode = this.data.themeModes[res.tapIndex].value;
-        const { settings } = this.data;
-        settings.theme.mode = selectedMode;
-        
+        const mode = res.tapIndex === 0 ? 'auto' : 'manual';
         this.setData({
-          settings,
-          themeModeText: this.getThemeModeText(selectedMode)
+          'settings.theme.mode': mode
         });
-        
-        wx.setStorageSync('appSettings', settings);
-        // 应用主题
-        getApp().applyTheme(settings.theme);
+        this.updateThemeModeText();
+        app.saveEquipmentList('appSettings', this.data.settings);
+        this.updateTheme();
       }
     });
   },
 
   // 设置主题颜色
   setThemeColor(e) {
-    const { color } = e.currentTarget.dataset;
-    const { settings } = this.data;
-    settings.theme.color = color;
-    this.setData({ settings });
-    wx.setStorageSync('appSettings', settings);
+    const color = e.currentTarget.dataset.color;
+    this.setData({
+      'settings.theme.color': color
+    });
+    app.saveEquipmentList('appSettings', this.data.settings);
+    this.updateTheme();
+  },
+
+  // 更新主题
+  updateTheme() {
+    // 这里可以根据设置更新全局主题
+    const theme = this.data.settings.theme;
+    // 实际项目中可以通过wx.setNavigationBarColor等API更新导航栏颜色
+    // 或者通过全局变量让其他页面也能获取到主题设置
     
-    // 应用主题
-    getApp().applyTheme(settings.theme);
+    // 示例：根据主题颜色设置导航栏
+    let navColor = '#3498db'; // 默认蓝色
+    switch(theme.color) {
+      case 'green':
+        navColor = '#2ecc71';
+        break;
+      case 'orange':
+        navColor = '#e67e22';
+        break;
+      case 'purple':
+        navColor = '#9b59b6';
+        break;
+    }
+    
+    wx.setNavigationBarColor({
+      frontColor: '#ffffff',
+      backgroundColor: navColor
+    });
   },
 
   // 清理缓存
   clearCache() {
     wx.showModal({
       title: '清理缓存',
-      content: '确定要清除所有缓存数据吗？',
+      content: '确定要清理应用缓存吗？',
       confirmText: '清理',
-      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '清理中...' });
-          wx.clearStorage({
-            success: () => {
-              wx.hideLoading();
-              this.calculateCacheSize();
-              wx.showToast({ title: '缓存清理完成' });
-            },
-            fail: () => {
-              wx.hideLoading();
-              wx.showToast({ title: '清理失败', icon: 'none' });
-            }
+          wx.clearStorageSync();
+          this.setData({
+            cacheSize: '0.00MB'
           });
+          wx.showToast({
+            title: '缓存已清理',
+            icon: 'none'
+          });
+          
+          // 重新加载设置
+          this.loadSettings();
+          this.checkLoginStatus();
         }
       }
     });
   },
 
-  // 退出登录
-  confirmLogout() {
+  // 检查更新
+  checkForUpdate() {
+    wx.showLoading({
+      title: '检查更新中...',
+      mask: true
+    });
+    
+    // 模拟检查更新
+    setTimeout(() => {
+      wx.hideLoading();
+      wx.showToast({
+        title: '当前已是最新版本',
+        icon: 'none'
+      });
+    }, 1500);
+  },
+
+  // 显示关于我们弹窗
+  showAboutModal() {
     wx.showModal({
-      title: '确认退出',
-      content: '确定要退出当前登录吗？',
-      confirmText: '退出',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          app.globalData.userInfo = null;
-          wx.removeStorageSync('userInfo');
-          wx.removeStorageSync('token');
-          wx.showToast({ title: '已退出登录' });
-          safeNavigate('/pages/login/login');
-        }
-      }
+      title: '关于我们',
+      content: '这是一个示例应用，用于展示设置页面功能。\n版本号：v' + this.data.version,
+      showCancel: false,
+      confirmText: '确定'
     });
   },
 
-  // 返回上一页
-  navigateBack() {
-    safeBack();
-  },
-  
-  // 处理返回按钮
-  onBack() {
-    safeBack();
-  },
-  
-  // 显示关于页面
-  showAbout() {
-    this.showAboutModal();
-  },
-  
-  // 修改密码
-  changePassword() {
-    this.showPlaceholderToast();
-  },
-  
-  // 跳转到编辑个人信息
-  navigateToEditProfile() {
-    this.showPlaceholderToast();
+  // 显示隐私政策
+  showPrivacyPolicy() {
+    wx.navigateTo({
+      url: '/pages/privacy-policy/privacy-policy'
+    });
   }
 });
-    

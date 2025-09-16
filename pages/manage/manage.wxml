@@ -1,17 +1,5 @@
-<view class="container">
-  <!-- 顶部导航栏 -->
-  <view class="navbar">
-    <view class="nav-left" bindtap="goBack">
-      <image src="/images/function/func-back.png" mode="widthFix" class="nav-icon" />
-      <view class="back-text">返回</view>
-    </view>
-    <view class="nav-title">设备管理</view>
-    <view class="nav-right" bindtap="toggleFilterPanel">
-      <image src="/images/function/func-filter.png" mode="widthFix" class="nav-icon" />
-      <view class="filter-text">筛选</view>
-    </view>
-  </view>
-
+<view class="container" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+ 
   <!-- 搜索框 -->
   <view class="search-container">
     <view class="search-box">
@@ -26,7 +14,7 @@
     </view>
   </view>
 
-  <!-- 快捷筛选栏 - 新增横向筛选栏，提升可用性 -->
+  <!-- 快捷筛选栏 -->
   <view class="quick-filter">
     <view 
       class="filter-chip {{currentStatus === 'all' ? 'active' : ''}}"
@@ -47,123 +35,72 @@
       bindtap="changeStatusFilter"
       data-status="借出"
     >
-      借出
+      出库
     </view>
     <view 
-      class="filter-chip {{currentType === 'system' ? 'active' : ''}}"
-      bindtap="changeTypeFilter"
-      data-type="system"
+      class="filter-chip {{currentStatus === 'other' ? 'active' : ''}}"
+      bindtap="changeStatusFilter"
+      data-status="other"
     >
-      系统类型
+      其他
     </view>
     <view 
-      class="filter-chip {{currentType === 'other' ? 'active' : ''}}"
-      bindtap="changeTypeFilter"
-      data-type="other"
+      class="filter-chip reset-filter"
+      bindtap="resetFilters"
     >
-      其他类
+      重置筛选
     </view>
   </view>
 
-  <!-- 筛选面板 - 优化布局结构 -->
-  <view class="filter-panel {{filterPanelVisible ? 'visible' : ''}}">
-    <view class="filter-header">
-      <view class="filter-title-main">筛选条件</view>
-      <view class="filter-close" bindtap="toggleFilterPanel">
-        <image src="/images/function/func-close.png" mode="widthFix" class="close-icon" />
-      </view>
-    </view>
-    
-    <view class="filter-content">
-      <view class="filter-section">
-        <view class="filter-title">状态筛选</view>
-        <view class="filter-options">
-          <view 
-            wx:for="{{statusOptions}}" 
-            wx:key="status"
-            class="filter-option {{currentStatus === item.status ? 'active' : ''}}"
-            bindtap="changeStatusFilter"
-            data-status="{{item.status}}"
-          >
-            <image src="{{item.icon}}" mode="widthFix" class="option-icon" />
-            <text>{{item.text}}</text>
-          </view>
-        </view>
-      </view>
 
-      <view class="filter-section">
-        <view class="filter-title">类型筛选</view>
-        <view class="filter-options">
-          <view 
-            wx:for="{{typeOptions}}" 
-            wx:key="type"
-            class="filter-option {{currentType === item.type ? 'active' : ''}}"
-            bindtap="changeTypeFilter"
-            data-type="{{item.type}}"
-          >
-            <text>{{item.text}}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-    
-    <view class="filter-footer">
-      <button class="reset-btn" bindtap="resetFilters">重置筛选</button>
-      <button class="confirm-btn" bindtap="toggleFilterPanel">确认</button>
-    </view>
-  </view>
-
-  <!-- 设备列表 - 优化网格布局 -->
+  <!-- 设备列表 -->
   <view class="equipment-list">
+    <!-- 加载状态 -->
     <view wx:if="{{isLoading}}" class="loading-view">
       <view class="loading-indicator"></view>
       <text>加载中...</text>
     </view>
     
-    <view wx:else>
-      <view wx:if="{{filteredEquipmentList.length === 0}}" class="empty-view">
-        <image src="/images/function/equip-no.png" mode="widthFix" class="empty-icon" />
-        <text class="empty-text">暂无设备数据</text>
-        <button class="empty-btn" bindtap="goToAddPage">添加设备</button>
-      </view>
-      
-      <view wx:else class="equipment-grid">
-        <view 
-          class="equipment-card" 
-          wx:for="{{filteredEquipmentList}}" 
-          wx:key="id"
-          bindtap="goToDetail"
-          data-id="{{item.id}}"
-        >
-          <view class="equipment-status {{item.status === '在库' ? 'status-available' : 'status-borrowed'}}">
-            {{item.status}}
-          </view>
-          <view class="equipment-info">
-            <view class="equipment-name">{{item.name}}</view>
-            <view class="equipment-type">类型: {{item.type}}</view>
-            <view class="equipment-spec">规格: {{item.specification || '未填写'}}</view>
-            <view class="equipment-location">位置: {{item.location || '未设置'}}</view>
-          </view>
+    <!-- 空状态 -->
+    <view wx:elif="{{filteredEquipmentList.length === 0}}" class="empty-view">
+      <image src="/images/function/equip-no.png" mode="widthFix" class="empty-icon" />
+      <text class="empty-text">暂无设备数据</text>
+      <button class="empty-btn" bindtap="onAddEquipment">添加设备</button>
+    </view>
+    
+    <!-- 设备网格 -->
+    <view wx:else class="equipment-grid">
+      <view 
+        class="equipment-card" 
+        wx:for="{{filteredEquipmentList}}" 
+        wx:key="id"
+        bindtap="goToDetail"
+        data-id="{{item.id}}"
+      >
+        <view class="equipment-status {{item.status === '在库' ? 'status-available' : item.status === '借出' ? 'status-borrowed' : 'status-other'}}">
+          {{item.status === '借出' ? '出库' : item.status}}
+        </view>
+        
+        
+        <view class="equipment-info">
+          <view class="equipment-name">{{item.name}}</view>
+          <view class="equipment-type">类型: {{item.type}}</view>
+          <view class="equipment-spec">规格: {{item.specification || '未填写'}}</view>
+          <view class="equipment-location">位置: {{item.location || '未设置'}}</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 悬浮按钮 -->
-  <view class="fab {{fabOpen ? 'open' : ''}}" bindtap="toggleFab">
-    <image src="/images/function/func-add-white.png" mode="widthFix" class="fab-icon" />
-  </view>
-  
-  <!-- 悬浮菜单 -->
-  <view class="fab-menu {{fabOpen ? 'show' : ''}}">
-    <view class="fab-item" bindtap="handleFabAction" data-action="single">
-      <image src="/images/function/func-add.png" mode="widthFix" class="menu-icon" />
-      <text>单个添加</text>
-    </view>
-    <view class="fab-item" bindtap="handleFabAction" data-action="batch">
-      <image src="/images/function/func-batch-add.png" mode="widthFix" class="menu-icon" />
-      <text>批量添加</text>
-    </view>
+  <!-- 替换原有fab元素为float-button组件 -->
+  <float-button 
+    menuItems="{{menuItems}}" 
+    bind:menuclick="handleFabAction"
+  ></float-button>
+
+  <!-- 一键回到顶部按钮 -->
+  <view class="back-to-top {{showBackToTop && !fabOpen ? 'show' : ''}}" bindtap="backToTop">
+    <image src="/images/function/func-top.png" mode="widthFix" class="back-to-top-icon" />
   </view>
 </view>
     

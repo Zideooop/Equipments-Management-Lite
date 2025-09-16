@@ -1,313 +1,352 @@
-<!-- pages/add/add.wxml -->
 <view class="page-container">
-  <!-- 页面标题 -->
-  <view class="page-header">
-    <text class="page-title">{{equipment.id ? '编辑器材' : '添加器材'}}</text>
+  <!-- 表单滚动区域 -->
+  <scroll-view class="form-scroll" scroll-y>
+    <view class="form-container">
+      <!-- 器材信息卡片 -->
+      <view class="form-card">
+        <view class="card-header">基本信息</view>
+        
+        <!-- 器材编号 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">器材编号</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <view class="input-group">
+              <input 
+                class="form-input" 
+                placeholder="请输入器材编号" 
+                placeholder-class="placeholder-style"
+                value="{{equipment.code}}"
+                data-field="code"
+                bindinput="handleInput"
+                focus="{{focusCode}}"
+                bindfocus="focusCodeInput"
+              />
+              <button 
+                class="scan-btn" 
+                bindtap="scanCode"
+                hover-class="scan-btn-hover"
+              >
+                <image 
+                  class="scan-icon" 
+                  src="/images/function/func-scan.png" 
+                  mode="widthFix"
+                  alt="扫码图标"
+                ></image>
+              </button>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 器材名称 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">器材名称</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <input 
+              class="form-input" 
+              placeholder="请输入器材名称" 
+              placeholder-class="placeholder-style"
+              value="{{equipment.name}}"
+              data-field="name"
+              bindinput="handleInput"
+              focus="{{focusName}}"
+              bindfocus="focusNameInput"
+            />
+          </view>
+        </view>
+        
+        <!-- 器材类型 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">器材类型</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <view class="selector-item" bindtap="showTypeSelector">
+              <view class="selector-content">
+                <text class="selector-text">{{equipment.type || '请选择器材类型'}}</text>
+                <image class="select-arrow" src="/images/function/arrow-right.png" mode="widthFix" alt="右箭头"></image>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 存放位置 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">存放位置</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <view class="selector-item" bindtap="showLocationSelector">
+              <view class="selector-content">
+                <text class="selector-text">{{equipment.location || '请选择存放位置'}}</text>
+                <image class="select-arrow" src="/images/function/arrow-right.png" mode="widthFix" alt="右箭头"></image>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 规格型号 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">规格型号</text>
+          </view>
+          <view class="item-content">
+            <view class="selector-item" bindtap="showSpecificationSelector">
+              <view class="selector-content">
+                <text class="selector-text">{{equipment.specification || '请选择规格型号'}}</text>
+                <image class="select-arrow" src="/images/function/arrow-right.png" mode="widthFix" alt="右箭头"></image>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 数量 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">数量</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <view class="quantity-content">
+              <button 
+                class="quantity-btn" 
+                bindtap="decreaseQuantity"
+                hover-class="btn-hover"
+              >
+                <image class="quantity-icon" src="/images/function/minus.png" mode="widthFix" alt="减号"></image>
+              </button>
+              <input 
+                class="quantity-input" 
+                type="number"
+                value="{{equipment.quantity}}"
+                data-field="quantity"
+                bindinput="handleInput"
+                focus="{{focusQuantity}}"
+                bindfocus="focusQuantityInput"
+              />
+              <button 
+                class="quantity-btn" 
+                bindtap="increaseQuantity"
+                hover-class="btn-hover"
+              >
+                <image class="quantity-icon" src="/images/function/plus.png" mode="widthFix" alt="加号"></image>
+              </button>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 状态 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">状态</text>
+            <text class="required">*</text>
+          </view>
+          <view class="item-content">
+            <view class="selector-item" bindtap="showStatusSelector">
+              <view class="selector-content">
+                <text class="selector-text">{{equipment.status || '请选择状态'}}</text>
+                <image class="select-arrow" src="/images/function/arrow-right.png" mode="widthFix" alt="右箭头"></image>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 备注 -->
+        <view class="form-item">
+          <view class="item-label">
+            <text class="label-text">备注</text>
+          </view>
+          <view class="item-content remarks-content">
+            <textarea 
+              class="form-textarea" 
+              placeholder="请输入备注信息（可选）" 
+              placeholder-class="placeholder-style"
+              value="{{equipment.remarks}}"
+              data-field="remarks"
+              bindinput="handleInput"
+              focus="{{focusRemarks}}"
+              bindfocus="focusRemarksInput"
+              auto-height
+            ></textarea>
+            <text class="text-count">{{equipment.remarks.length || 0}}/200</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 图片上传卡片 -->
+      <view class="form-card image-upload-card">
+        <view class="card-header">器材图片</view>
+        <view class="item-content">
+          <view class="image-upload-container">
+            <!-- 图片预览区域 -->
+            <view 
+              class="image-preview" 
+              wx:if="{{imageTempPath}}"
+              bindtap="previewImage"
+            >
+              <image 
+                class="preview-image" 
+                src="{{imageTempPath}}" 
+                mode="cover"
+                alt="器材图片预览"
+              ></image>
+              <!-- 移除图片按钮 - 增强版 -->
+              <!-- 使用catchtap防止事件冒泡到预览 -->
+              <view 
+                class="image-remove" 
+                catchtap="removeImage"
+                hover-class="image-remove-hover"
+              >
+                <text class="remove-icon">×</text>
+              </view>
+            </view>
+            
+            <!-- 未选择图片时的占位区域 -->
+            <view 
+              class="image-upload-placeholder" 
+              wx:if="{{!imageTempPath}}"
+              bindtap="showImageSourceMenu"
+            >
+              <image 
+                class="upload-icon" 
+                src="/images/function/upload-icon.png" 
+                mode="widthFix"
+                alt="上传图标"
+              ></image>
+              <text class="upload-text">点击上传图片</text>
+              <text class="upload-subtext">支持JPG、PNG格式</text>
+            </view>
+            
+            <!-- 已选择图片时的操作按钮 -->
+            <view class="image-operation-buttons" wx:if="{{imageTempPath}}">
+              <button 
+                class="image-op-btn" 
+                bindtap="showImageSourceMenu"
+              >
+                <image 
+                  class="upload-icon" 
+                  src="/images/function/replace-icon.png" 
+                  mode="widthFix"
+                  style="width:24rpx;height:24rpx;"
+                  alt="更换图标"
+                ></image>
+                更换图片
+              </button>
+            </view>
+            
+            <!-- 图片提示信息 -->
+            <text class="image-hint">建议上传清晰的器材照片，大小不超过2MB</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 底部留白 -->
+      <view class="bottom-space"></view>
+    </view>
+  </scroll-view>
+  
+  <!-- 底部操作栏 -->
+  <view class="operation-tabbar">
+    <button class="tabbar-btn cancel-btn" bindtap="cancel">取消</button>
+    <button class="tabbar-btn save-btn" bindtap="saveEquipment">保存</button>
   </view>
-
-  <!-- 卡片式表单容器 -->
-  <view class="form-container">
-    <!-- 器材编号（置顶显示） -->
-    <view class="form-card" bindtap="{{!equipment.id ? 'focusCodeInput' : ''}}">
-      <view class="card-label">
-        <text class="label-text">器材编号</text>
-        <text class="required">*</text>
+  
+  <!-- 图片来源选择菜单 -->
+  <view class="picker-modal" wx:if="{{showImageSourceMenu}}">
+    <view class="picker-mask" bindtap="hideImageSourceMenu"></view>
+    <view class="picker-panel">
+      <view class="picker-header">
+        <text class="picker-title">选择图片来源</text>
       </view>
-      <view class="card-content">
-        <input 
-          id="codeInput"
-          value="{{equipment.code}}"
-          placeholder="请输入器材编号"
-          bindinput="handleInput"
-          data-field="code"
-          class="card-input"
-          disabled="{{equipment.id}}"
-        />
-        <button 
-          class="scan-btn" 
-          bindtap="scanCode"
-          size="mini"
-        >
-          <image src="/images/function/func-scan.png" mode="widthFix" class="scan-icon" />
-        </button>
-      </view>
-    </view>
-
-    <!-- 器材名称 -->
-    <view class="form-card" bindtap="focusNameInput">
-      <view class="card-label">
-        <text class="label-text">器材名称</text>
-        <text class="required">*</text>
-      </view>
-      <view class="card-content">
-        <input 
-          id="nameInput"
-          value="{{equipment.name}}"
-          placeholder="请输入器材名称"
-          bindinput="handleInput"
-          data-field="name"
-          class="card-input"
-        />
-      </view>
-    </view>
-
-    <!-- 器材类型 -->
-    <view class="form-card" bindtap="showTypeSelector">
-      <view class="card-label">
-        <text class="label-text">器材类型</text>
-        <text class="required">*</text>
-      </view>
-      <view class="card-content select-content">
-        <text class="select-text">{{equipment.type || '请选择器材类型'}}</text>
-        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="select-arrow" />
-      </view>
-    </view>
-
-    <!-- 自定义类型输入框 -->
-    <view class="form-card custom-input-card" wx:if="{{showCustomType}}">
-      <view class="card-content custom-input-content">
-        <input 
-          id="customTypeInput"
-          value="{{customType}}"
-          placeholder="请输入自定义类型"
-          bindinput="handleCustomTypeInput"
-          class="custom-input"
-          focus
-        />
-        <button class="confirm-btn" bindtap="confirmCustomType">确认</button>
-      </view>
-    </view>
-
-    <!-- 规格型号 -->
-    <view class="form-card" bindtap="showSpecificationSelector">
-      <view class="card-label">
-        <text class="label-text">规格型号</text>
-      </view>
-      <view class="card-content select-content">
-        <text class="select-text">{{equipment.specification || '请选择规格型号'}}</text>
-        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="select-arrow" />
-      </view>
-    </view>
-
-    <!-- 自定义规格输入框 -->
-    <view class="form-card custom-input-card" wx:if="{{showCustomSpecification}}">
-      <view class="card-content custom-input-content">
-        <input 
-          id="customSpecificationInput"
-          value="{{customSpecification}}"
-          placeholder="请输入自定义规格"
-          bindinput="handleCustomSpecificationInput"
-          class="custom-input"
-          focus
-        />
-        <button class="confirm-btn" bindtap="confirmCustomSpecification">确认</button>
-      </view>
-    </view>
-
-    <!-- 存放位置 -->
-    <view class="form-card" bindtap="showLocationSelector">
-      <view class="card-label">
-        <text class="label-text">存放位置</text>
-        <text class="required">*</text>
-      </view>
-      <view class="card-content select-content">
-        <text class="select-text">{{equipment.location || '请选择存放位置'}}</text>
-        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="select-arrow" />
-      </view>
-    </view>
-
-    <!-- 自定义位置输入框 -->
-    <view class="form-card custom-input-card" wx:if="{{showCustomLocation}}">
-      <view class="card-content custom-input-content">
-        <input 
-          id="customLocationInput"
-          value="{{customLocation}}"
-          placeholder="请输入自定义位置"
-          bindinput="handleCustomLocationInput"
-          class="custom-input"
-          focus
-        />
-        <button class="confirm-btn" bindtap="confirmCustomLocation">确认</button>
-      </view>
-    </view>
-
-    <!-- 数量 -->
-    <view class="form-card" bindtap="focusQuantityInput">
-      <view class="card-label">
-        <text class="label-text">数量</text>
-        <text class="required">*</text>
-      </view>
-      <view class="card-content quantity-content">
-        <button 
-          class="quantity-btn minus" 
-          bindtap="decreaseQuantity"
-          size="mini"
-          disabled="{{equipment.quantity <= 1}}"
-        >
-          -
-        </button>
-        <input 
-          id="quantityInput"
-          value="{{equipment.quantity}}"
-          type="number"
-          bindinput="handleQuantityInput"
-          bindblur="validateQuantity"
-          class="quantity-input"
-          input-mode="numeric"
-          placeholder="1"
-        />
-        <button 
-          class="quantity-btn plus" 
-          bindtap="increaseQuantity"
-          size="mini"
-        >
-          +
-        </button>
-      </view>
-    </view>
-
-    <!-- 状态 -->
-    <view class="form-card" bindtap="showStatusSelector">
-      <view class="card-label">
-        <text class="label-text">状态</text>
-        <text class="required">*</text>
-      </view>
-      <view class="card-content select-content">
-        <text class="select-text">{{equipment.status || '请选择状态'}}</text>
-        <image src="/images/function/func-arrow-right.png" mode="widthFix" class="select-arrow" />
-      </view>
-    </view>
-
-    <!-- 自定义状态输入框 -->
-    <view class="form-card custom-input-card" wx:if="{{showCustomStatus}}">
-      <view class="card-content custom-input-content">
-        <input 
-          id="customStatusInput"
-          value="{{customStatus}}"
-          placeholder="请输入自定义状态"
-          bindinput="handleCustomStatusInput"
-          class="custom-input"
-          focus
-        />
-        <button class="confirm-btn" bindtap="confirmCustomStatus">确认</button>
-      </view>
-    </view>
-
-    <!-- 备注 -->
-    <view class="form-card" bindtap="focusRemarksInput">
-      <view class="card-label">
-        <text class="label-text">备注</text>
-      </view>
-      <view class="card-content remarks-content">
-        <textarea 
-          id="remarksInput"
-          value="{{equipment.remarks}}"
-          placeholder="请输入备注信息（选填，最多200字）"
-          bindinput="handleInput"
-          data-field="remarks"
-          class="card-textarea"
-          auto-height
-          maxlength="200"
-        />
-        <text class="text-count">{{equipment.remarks.length || 0}}/200</text>
+      <view class="image-source-options">
+        <view class="image-source-option" bindtap="chooseImageFromCamera">
+          <image 
+            src="/images/function/camera-icon.png" 
+            mode="widthFix" 
+            style="width:40rpx;height:40rpx;margin-right:20rpx;"
+            alt="相机图标"
+          ></image>
+          <text>拍摄照片</text>
+        </view>
+        <view class="image-source-option" bindtap="chooseImageFromAlbum">
+          <image 
+            src="/images/function/album-icon.png" 
+            mode="widthFix" 
+            style="width:40rpx;height:40rpx;margin-right:20rpx;"
+            alt="相册图标"
+          ></image>
+          <text>从相册选择</text>
+        </view>
       </view>
     </view>
   </view>
-
-  <!-- 操作按钮 -->
-  <view class="form-actions">
-    <button class="btn cancel-btn" bindtap="cancel">取消</button>
-    <button class="btn save-btn" bindtap="saveEquipment">
-      {{equipment.id ? '更新' : '保存'}}
-    </button>
-  </view>
-
-  <!-- 类型选择器 -->
-  <view class="picker-container" wx:if="{{showTypePicker}}">
-    <view class="picker-mask" bindtap="hideTypeSelector"></view>
-    <view class="picker-view">
-      <view class="picker-title">
-        <text class="picker-cancel" bindtap="hideTypeSelector">取消</text>
-        <text class="picker-title-text">选择器材类型</text>
-        <text class="picker-confirm" bindtap="confirmTypeSelection">确认</text>
+  
+  <!-- 通用选择器弹窗 -->
+  <view class="picker-modal" wx:if="{{showTypePicker || showLocationPicker || showStatusPicker || showSpecificationPicker}}">
+    <view class="picker-mask" bindtap="hidePicker" data-type="{{currentPickerType}}"></view>
+    <view class="picker-panel">
+      <view class="picker-header">
+        <text class="picker-cancel" bindtap="hidePicker" data-type="{{currentPickerType}}">取消</text>
+        <text class="picker-title">{{currentPickerTitle}}</text>
+        <text class="picker-confirm" bindtap="confirmPickerSelection" data-type="{{currentPickerType}}">确定</text>
       </view>
       <picker-view 
-        indicator-style="height: 50rpx;"
+        indicator-style="height: 80rpx;"
         style="width: 100%; height: 400rpx;"
-        value="{{typeIndex}}"
-        bindchange="onTypeChange"
+        value="{{[currentPickerIndex]}}"
+        bindchange="onPickerChange"
+        data-type="{{currentPickerType}}"
       >
         <picker-view-column>
-          <view class="picker-item" wx:for="{{typeOptions}}" wx:key="index">{{item}}</view>
+          <view class="picker-item {{item === '自定义...' ? 'custom-option' : ''}}" wx:for="{{currentPickerOptions}}" wx:key="*this">{{item}}</view>
         </picker-view-column>
       </picker-view>
     </view>
   </view>
-
-  <!-- 规格型号选择器 -->
-  <view class="picker-container" wx:if="{{showSpecificationPicker}}">
-    <view class="picker-mask" bindtap="hideSpecificationSelector"></view>
-    <view class="picker-view">
-      <view class="picker-title">
-        <text class="picker-cancel" bindtap="hideSpecificationSelector">取消</text>
-        <text class="picker-title-text">选择规格型号</text>
-        <text class="picker-confirm" bindtap="confirmSpecificationSelection">确认</text>
+  
+  <!-- 自定义输入框 -->
+  <view class="custom-input-item" wx:if="{{showCustomInput.type || showCustomInput.location || showCustomInput.status || showCustomInput.specification}}">
+    <view class="custom-input-content">
+      <input 
+        class="custom-input" 
+        placeholder="请输入自定义内容" 
+        placeholder-class="placeholder-style"
+        value="{{customValue}}"
+        bindinput="handleCustomInput"
+        id="custom{{currentCustomType.charAt(0).toUpperCase() + currentCustomType.slice(1)}}Input"
+        auto-focus
+      />
+      <view class="custom-btn-group">
+        <button class="custom-btn cancel" bindtap="cancelCustomInput">取消</button>
+        <button class="custom-btn confirm" bindtap="saveCustomOption">确定</button>
       </view>
-      <picker-view 
-        indicator-style="height: 50rpx;"
-        style="width: 100%; height: 400rpx;"
-        value="{{specificationIndex}}"
-        bindchange="onSpecificationChange"
-      >
-        <picker-view-column>
-          <view class="picker-item" wx:for="{{specificationOptions}}" wx:key="index">{{item}}</view>
-        </picker-view-column>
-      </picker-view>
     </view>
   </view>
-
-  <!-- 存放位置选择器 -->
-  <view class="picker-container" wx:if="{{showLocationPicker}}">
-    <view class="picker-mask" bindtap="hideLocationSelector"></view>
-    <view class="picker-view">
-      <view class="picker-title">
-        <text class="picker-cancel" bindtap="hideLocationSelector">取消</text>
-        <text class="picker-title-text">选择存放位置</text>
-        <text class="picker-confirm" bindtap="confirmLocationSelection">确认</text>
-      </view>
-      <picker-view 
-        indicator-style="height: 50rpx;"
-        style="width: 100%; height: 400rpx;"
-        value="{{locationIndex}}"
-        bindchange="onLocationChange"
-      >
-        <picker-view-column>
-          <view class="picker-item" wx:for="{{locationOptions}}" wx:key="index">{{item}}</view>
-        </picker-view-column>
-      </picker-view>
+  
+  <!-- 加载提示 -->
+  <view class="loading-modal" wx:if="{{isLoading}}">
+    <view class="loading-mask"></view>
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">{{loadingText}}</text>
     </view>
   </view>
-
-  <!-- 状态选择器 -->
-  <view class="picker-container" wx:if="{{showStatusPicker}}">
-    <view class="picker-mask" bindtap="hideStatusSelector"></view>
-    <view class="picker-view">
-      <view class="picker-title">
-        <text class="picker-cancel" bindtap="hideStatusSelector">取消</text>
-        <text class="picker-title-text">选择状态</text>
-        <text class="picker-confirm" bindtap="confirmStatusSelection">确认</text>
-      </view>
-      <picker-view 
-        indicator-style="height: 50rpx;"
-        style="width: 100%; height: 400rpx;"
-        value="{{statusIndex}}"
-        bindchange="onStatusChange"
-      >
-        <picker-view-column>
-          <view class="picker-item" wx:for="{{statusOptions}}" wx:key="index">{{item}}</view>
-        </picker-view-column>
-      </picker-view>
-    </view>
+  
+  <!-- Canvas 2D 组件 - 用于图片压缩 -->
+  <view class="canvas-container">
+    <canvas 
+      type="2d" 
+      canvas-id="imageCanvas" 
+      id="imageCanvas"
+      style="width: {{maxWidth}}px; height: {{maxHeight}}px;"
+    ></canvas>
   </view>
 </view>
     

@@ -42,7 +42,7 @@ Page({
         // 保存到全局和本地存储
         const app = getApp();
         app.globalData.userInfo = adminInfo;
-        wx.setStorageSync('userInfo', adminInfo);
+        app.saveEquipmentList('userInfo', adminInfo);
         
         wx.showToast({ title: '管理员登录成功' });
         

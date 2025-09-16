@@ -1,22 +1,21 @@
 /* pages/add/add.wxss */
+/* 基础样式 */
 .page-container {
   min-height: 100vh;
   background-color: #f5f5f7;
-  padding-bottom: 120rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding-bottom: 120rpx; /* 为底部操作栏留出空间 */
   box-sizing: border-box;
 }
 
-/* 页面标题 */
-.page-header {
-  padding: 30rpx 30rpx 20rpx;
-  background-color: #fff;
-  border-bottom: 1rpx solid #eee;
-}
-
-.page-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+/* 表单滚动容器 */
+.form-scroll {
+  width: 100%;
+  padding-top: 30rpx;
+  height: calc(100vh - 120rpx); /* 减去底部操作栏高度 */
+  overflow-y: auto;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 表单容器 */
@@ -29,19 +28,49 @@
 /* 卡片样式 */
 .form-card {
   width: 100%;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 30rpx;
   background-color: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: transform 0.2s ease;
 }
 
-/* 卡片标签 */
-.card-label {
+/* 图片上传卡片特殊样式 */
+.image-upload-card {
+  margin-bottom: 30rpx;
+}
+
+.form-card:active {
+  transform: scale(0.995);
+}
+
+/* 卡片标题 */
+.card-header {
+  padding: 28rpx 30rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 1rpx solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+/* 表单项样式 */
+.form-item {
+  padding: 0 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-item:last-child {
+  border-bottom: none;
+}
+
+/* 项目标签 */
+.item-label {
+  padding-top: 28rpx;
   display: flex;
   align-items: center;
-  margin-bottom: 15rpx;
+  margin-bottom: 12rpx;
 }
 
 .label-text {
@@ -55,136 +84,34 @@
   margin-left: 8rpx;
 }
 
-/* 卡片内容 */
-.card-content {
+/* 项目内容区 */
+.item-content {
+  padding-bottom: 28rpx;
   width: 100%;
-  display: flex;
-  align-items: center;
 }
 
 /* 输入框样式 */
-.card-input {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333;
-  padding: 10rpx 0;
-  line-height: 1.5;
-}
-
-/* 选择框样式 */
-.select-content {
-  justify-content: space-between;
-}
-
-.select-text {
-  flex: 1;
-  font-size: 28rpx;
-  color: #666;
-  padding: 10rpx 0;
-}
-
-.select-arrow {
-  width: 24rpx;
-  height: 44rpx;
-  opacity: 0.5;
-}
-
-/* 数量操作区 */
-.quantity-content {
-  align-items: center;
-  padding: 5rpx 0;
-}
-
-.quantity-btn {
-  width: 70rpx;
-  height: 70rpx;
-  line-height: 70rpx;
-  padding: 0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-}
-
-.minus {
-  background-color: #f5f5f7;
-  color: #666;
-}
-
-.plus {
-  background-color: #007aff;
-  color: #fff;
-}
-
-.quantity-input {
-  width: 120rpx;
-  height: 70rpx;
-  margin: 0 20rpx;
-  text-align: center;
-  font-size: 28rpx;
-  border: 1rpx solid #eee;
-  border-radius: 8rpx;
-}
-
-/* 备注区域 */
-.remarks-content {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.card-textarea {
+.form-input {
   width: 100%;
-  min-height: 120rpx;
-  max-height: 300rpx;
-  font-size: 28rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 30rpx;
   color: #333;
-  line-height: 1.6;
-  padding: 10rpx 0;
 }
 
-.text-count {
-  align-self: flex-end;
-  margin-top: 10rpx;
-  font-size: 24rpx;
+.placeholder-style {
   color: #999;
+  font-size: 30rpx;
 }
 
-/* 自定义输入框卡片 */
-.custom-input-card {
-  margin-top: -10rpx;
-  margin-bottom: 15rpx;
-  padding-top: 20rpx;
-  padding-bottom: 20rpx;
-  background-color: #f9f9f9;
-}
-
-.custom-input-content {
-  width: 100%;
+/* 带扫码按钮的输入组 */
+.input-group {
   display: flex;
   align-items: center;
 }
 
-.custom-input {
+.input-group .form-input {
   flex: 1;
-  height: 80rpx;
-  padding: 0 15rpx;
-  background-color: #fff;
-  border: 1rpx solid #eee;
-  border-radius: 8rpx;
-  font-size: 28rpx;
-}
-
-.confirm-btn {
-  width: 120rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  margin-left: 15rpx;
-  padding: 0;
-  background-color: #007aff;
-  color: #fff;
-  font-size: 28rpx;
-  border-radius: 8rpx;
 }
 
 /* 扫码按钮 */
@@ -197,34 +124,185 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8rpx;
+}
+
+.scan-btn-hover {
+  background-color: rgba(0, 122, 255, 0.1);
 }
 
 .scan-icon {
-  width: 40rpx;
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 选择器项目样式 */
+.selector-item {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.selector-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selector-text {
+  font-size: 30rpx;
+  color: #333;
+}
+
+.select-arrow {
+  width: 24rpx;
+  height: 44rpx;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.selector-item:active .select-arrow {
+  transform: translateX(4rpx);
+}
+
+/* 数量控制区 */
+.quantity-content {
+  display: flex;
+  align-items: center;
+  padding-bottom: 28rpx;
+}
+
+.quantity-btn {
+  width: 68rpx;
+  height: 68rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f7;
+}
+
+.btn-hover {
+  background-color: #eaeaea;
+}
+
+.quantity-icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.quantity-input {
+  width: 120rpx;
+  height: 68rpx;
+  margin: 0 20rpx;
+  text-align: center;
+  font-size: 30rpx;
+  border: 1rpx solid #eee;
+  border-radius: 8rpx;
+}
+
+/* 备注区域 */
+.remarks-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 120rpx;
+  max-height: 300rpx;
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.6;
+  padding: 10rpx 0;
+}
+
+.text-count {
+  align-self: flex-end;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 自定义输入项 */
+.custom-input-item {
+  padding: 15rpx 30rpx;
+  background-color: #f9f9f9;
+}
+
+.custom-input-content {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+}
+
+.custom-input {
+  flex: 1;
+  height: 70rpx;
+  padding: 0 20rpx;
+  background-color: #fff;
+  border: 1rpx solid #eee;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+}
+
+.custom-btn-group {
+  display: flex;
+  gap: 10rpx;
+}
+
+.custom-btn {
+  width: 110rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  padding: 0;
+  margin: 0;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+}
+
+.custom-btn.cancel {
+  background-color: #f5f5f7;
+  color: #666;
+}
+
+.custom-btn.confirm {
+  background-color: #007aff;
+  color: #fff;
+}
+
+/* 底部留白 - 为底部操作栏留出空间 */
+.bottom-space {
   height: 40rpx;
 }
 
-/* 操作按钮 */
-.form-actions {
+/* 底部操作tabbar样式 */
+.operation-tabbar {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
-  padding: 20rpx 30rpx;
+  right: 0;
+  height: 120rpx;
+  display: flex;
+  flex-direction: row;
   background-color: #fff;
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
-  display: flex;
-  gap: 20rpx;
-  box-sizing: border-box;
+  z-index: 40;
 }
 
-.btn {
+.tabbar-btn {
   flex: 1;
-  height: 90rpx;
-  line-height: 90rpx;
-  border-radius: 12rpx;
-  font-size: 32rpx;
+  height: 100%;
+  border-radius: 0;
+  font-size: 34rpx;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
 }
 
 .cancel-btn {
@@ -237,12 +315,12 @@
   color: #fff;
 }
 
-/* 选择器样式 */
-.picker-container {
+/* 选择器模态框 */
+.picker-modal {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
+  right: 0;
   z-index: 100;
 }
 
@@ -253,33 +331,48 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  animation: maskFadeIn 0.3s ease forwards;
 }
 
-.picker-view {
+@keyframes maskFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.picker-panel {
   position: relative;
   width: 100%;
   background-color: #fff;
-  border-top-left-radius: 20rpx;
-  border-top-right-radius: 20rpx;
-  overflow: hidden;
+  border-top-left-radius: 24rpx;
+  border-top-right-radius: 24rpx;
+  transform: translateY(100%);
+  animation: panelSlideUp 0.3s ease forwards;
 }
 
-.picker-title {
+@keyframes panelSlideUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+.picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 30rpx;
+  padding: 24rpx 30rpx;
   border-bottom: 1rpx solid #eee;
 }
 
-.picker-title-text {
-  font-size: 30rpx;
+.picker-title {
+  font-size: 32rpx;
   font-weight: 500;
   color: #333;
 }
 
 .picker-cancel, .picker-confirm {
-  font-size: 28rpx;
+  font-size: 30rpx;
   padding: 10rpx 20rpx;
 }
 
@@ -289,13 +382,269 @@
 
 .picker-confirm {
   color: #007aff;
+  font-weight: 500;
 }
 
 .picker-item {
-  height: 100rpx;
-  line-height: 100rpx;
+  height: 80rpx;
+  line-height: 80rpx;
   text-align: center;
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #333;
 }
+
+.custom-option {
+  color: #007aff;
+  font-weight: 500;
+}
+
+/* 图片来源选择选项样式 */
+.image-source-options {
+  padding-top: 10rpx;
+}
+
+.image-source-option {
+  display: flex;
+  align-items: center;
+  padding: 25rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.image-source-option:last-child {
+  border-bottom: none;
+}
+
+.image-source-option:active {
+  background-color: #f5f5f5;
+}
+
+/* 加载提示 */
+.loading-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.loading-content {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 28rpx;
+}
     
+/* 图片上传区域样式 */
+.image-upload-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+/* 图片预览样式 */
+.image-preview {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.image-preview:active {
+  transform: scale(0.98);
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 点击图片提示 */
+.image-preview::after {
+  content: "点击查看大图";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5rpx 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 20rpx;
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* 增强的移除图片按钮样式 - 更大尺寸和明确的点击区域 */
+.image-remove {
+  position: absolute;
+  top: -15rpx;  /* 稍微向外移动，更突出 */
+  right: -15rpx;
+  width: 70rpx;  /* 增大尺寸 */
+  height: 70rpx;
+  border-radius: 50%;
+  background-color: #ff3b30; /* 红色背景突出删除操作 */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;  /* 提高层级确保在最上层 */
+  box-shadow: 0 4rpx 12rpx rgba(255, 59, 48, 0.6); /* 增强阴影 */
+  transition: all 0.2s ease;
+}
+
+/* 移除图标样式 */
+.remove-icon {
+  font-size: 40rpx;  /* 增大叉号 */
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* 悬停/点击效果 */
+.image-remove-hover {
+  transform: scale(1.1);  /* 点击时稍微放大 */
+  background-color: #d32f2f; /* 颜色加深 */
+}
+
+/* 调整图片预览容器样式 */
+.image-preview {
+  width: 240rpx;  /* 稍微增大图片容器 */
+  height: 240rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+/* 优化点击提示 */
+.image-preview::after {
+  content: "点击查看大图";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8rpx 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 22rpx;
+  text-align: center;
+  opacity: 0.9;
+}
+    
+
+/* 未选择图片时的占位区域 */
+.image-upload-placeholder {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 16rpx;
+  border: 2rpx dashed #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  background-color: #fafafa;
+  cursor: pointer;
+}
+
+.image-upload-placeholder:active {
+  background-color: #f0f0f0;
+}
+
+.upload-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin-bottom: 15rpx;
+  opacity: 0.6;
+}
+
+.upload-text {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.upload-subtext {
+  font-size: 20rpx;
+  color: #999;
+}
+
+/* 图片操作按钮组 */
+.image-operation-buttons {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 5rpx;
+}
+
+.image-op-btn {
+  width: 340rpx;
+  height: 65rpx;
+  line-height: 65rpx;
+  padding: 0;
+  margin: 0;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border-radius: 8rpx;
+  background-color: #f5f5f7;
+}
+
+.image-hint {
+  margin-top: 15rpx;
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
+}
+
+/* Canvas组件样式 */
+.canvas-container {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}

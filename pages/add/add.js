@@ -1,201 +1,931 @@
-// pages/add/add.js
+/**
+ * 新增/编辑设备页面
+ * 处理设备信息的添加和编辑功能
+ */
+// 初始化云开发环境
+wx.cloud.init()
+const db = wx.cloud.database()
+const _ = db.command // 引入数据库命令对象
+const cloudPathPrefix = 'equipment-images/' // 云存储图片路径前缀
+
 const app = getApp();
-const { safeNavigate, safeBack } = require('../../utils/navigation.js');
+const { safeBack } = require('../../utils/navigation.js');
+const { AppUtils } = require('../../utils/AppUtils.js');
+
+// 选择器配置抽象 - 集中管理所有选择器信息
+const SELECTOR_CONFIG = {
+  type: {
+    options: ['电子设备', '机械设备', '工具器材', '其他'],
+    field: 'type',
+    storageKey: 'customTypeOptions',
+    title: '选择器材类型'
+  },
+  location: {
+    options: ['仓库A', '仓库B', '实验室1', '实验室2', '办公室'],
+    field: 'location',
+    storageKey: 'customLocationOptions',
+    title: '选择存放位置'
+  },
+  status: {
+    options: ['在库', '借出', '维修', '报废'],
+    field: 'status',
+    storageKey: 'customStatusOptions',
+    title: '选择状态'
+  },
+  specification: {
+    options: ['标准型', '加强型', '经济型', '定制型'],
+    field: 'specification',
+    storageKey: 'customSpecificationOptions',
+    title: '选择规格型号'
+  }
+};
+
+// 操作记录管理器 - 专门处理操作日志相关功能
+class OperationLogManager {
+  constructor(page) {
+    this.page = page;
+    this.logStorageKey = 'activityLogs';
+    this.maxLogCount = 100; // 最大日志数量限制
+  }
+  
+  // 添加操作日志
+  addLog(equipment, action) {
+    if (!equipment || !equipment.id || !action) return false;
+    
+    const log = {
+      id: `log-${Date.now()}`,
+      equipmentId: equipment.id,
+      equipmentName: equipment.name || '未知设备',
+      action,
+      time: AppUtils.formatDate(),
+      user: app.globalData.userInfo?.username || '未知用户'
+    };
+    
+    try {
+      let logs = AppUtils.storage(this.logStorageKey, undefined, 'array');
+      logs.unshift(log);
+      
+      // 限制日志数量，只保留最近N条
+      if (logs.length > this.maxLogCount) {
+        logs = logs.slice(0, this.maxLogCount);
+      }
+      
+      // 保存日志并同步到全局数据
+      AppUtils.storage(this.logStorageKey, logs, 'array');
+      app.globalData.activityLog = logs;
+      
+      // 触发日志更新事件
+      app.globalEvent.emit('logUpdated', log);
+      return true;
+    } catch (error) {
+      console.error('记录操作日志失败:', error);
+      return false;
+    }
+  }
+  
+  // 获取设备相关日志
+  getEquipmentLogs(equipmentId) {
+    if (!equipmentId) return [];
+    
+    const logs = AppUtils.storage(this.logStorageKey, undefined, 'array');
+    return AppUtils.safeArray(logs).filter(log => log.equipmentId === equipmentId);
+  }
+  
+  // 清空指定设备的日志
+  clearEquipmentLogs(equipmentId) {
+    if (!equipmentId) return false;
+    
+    let logs = AppUtils.storage(this.logStorageKey, undefined, 'array');
+    logs = AppUtils.safeArray(logs).filter(log => log.equipmentId !== equipmentId);
+    
+    return AppUtils.storage(this.logStorageKey, logs, 'array');
+  }
+}
+
+// 图片管理器 - 专门处理图片选择、压缩和上传
+class ImageManager {
+  constructor(page) {
+    this.page = page;
+    this.cloudPathPrefix = cloudPathPrefix;
+    this.maxSize = 2 * 1024 * 1024; // 图片最大尺寸限制2MB
+    this.maxWidth = 800; // 图片最大宽度
+    this.maxHeight = 800; // 图片最大高度
+  }
+  
+  // 验证文件路径是否有效（同时支持临时路径和云路径）
+  isValidFilePath(path) {
+    if (!path || typeof path !== 'string' || path.trim() === '') {
+      return false;
+    }
+    
+    // 支持微信临时文件路径和云存储路径
+    return path.startsWith('wxfile://') || path.startsWith('cloud://');
+  }
+  
+  // 从指定来源选择图片
+  chooseImage(sourceType) {
+    const that = this;
+    const page = this.page;
+    
+    if (page.data.isUploading) return;
+    
+    return new Promise((resolve, reject) => {
+      wx.chooseImage({
+        count: 1, // 只允许选择1张图片
+        sizeType: ['compressed'], // 压缩图
+        sourceType: [sourceType],
+        success(res) {
+          // 隐藏选择菜单
+          page.hideImageSourceMenu();
+          
+          if (!res.tempFilePaths || res.tempFilePaths.length === 0) {
+            AppUtils.showToast('未获取到图片');
+            console.error('选择图片成功但未获取到临时路径', res);
+            reject(new Error('未获取到图片路径'));
+            return;
+          }
+          
+          const tempFilePath = res.tempFilePaths[0];
+          resolve(tempFilePath);
+        },
+        fail(err) {
+          console.error('选择图片失败:', err);
+          page.hideImageSourceMenu();
+          
+          // 忽略用户取消操作的错误
+          if (err.errMsg !== 'chooseImage:fail cancel') {
+            AppUtils.showToast('选择图片失败');
+            reject(err);
+          }
+        }
+      });
+    });
+  }
+  
+  // 检查图片大小
+  checkImageSize(tempFilePath) {
+    return new Promise((resolve, reject) => {
+      const fs = wx.getFileSystemManager();
+      fs.getFileInfo({
+        filePath: tempFilePath,
+        success(fileInfo) {
+          if (!fileInfo || typeof fileInfo.size === 'undefined') {
+            AppUtils.showToast('文件信息不完整');
+            reject(new Error('文件信息不完整'));
+            return;
+          }
+          
+          if (fileInfo.size > this.maxSize) {
+            AppUtils.showToast('图片大小不能超过2MB');
+            reject(new Error('图片过大'));
+            return;
+          }
+          
+          resolve(tempFilePath);
+        },
+        fail(err) {
+          console.error('获取文件信息失败:', err);
+          AppUtils.showToast('无法处理图片');
+          reject(err);
+        }
+      });
+    });
+  }
+  
+  // 压缩图片
+  compressImage(tempFilePath) {
+    const that = this;
+    const page = this.page;
+    
+    return new Promise((resolve, reject) => {
+      page.setData({ isUploading: true });
+      
+      wx.compressImage({
+        src: tempFilePath,
+        quality: 70,
+        success(res) {
+          // 预览压缩后的图片尺寸
+          wx.getImageInfo({
+            src: res.tempFilePath,
+            success(imageInfo) {
+              let { width, height } = imageInfo;
+              const { canvasCtx, canvas } = page.data;
+              
+              // 计算缩放比例
+              if (width > that.maxWidth || height > that.maxHeight) {
+                const scale = Math.min(that.maxWidth / width, that.maxHeight / height);
+                const newWidth = width * scale;
+                const newHeight = height * scale;
+                
+                // 调整canvas尺寸
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                
+                // 使用Canvas 2D接口进行图片缩放
+                const img = canvas.createImage();
+                img.src = res.tempFilePath;
+                img.onload = () => {
+                  canvasCtx.drawImage(img, 0, 0, newWidth, newHeight);
+                  wx.canvasToTempFilePath({
+                    x: 0,
+                    y: 0,
+                    width: newWidth,
+                    height: newHeight,
+                    destWidth: newWidth,
+                    destHeight: newHeight,
+                    canvasId: 'imageCanvas',
+                    success(canvasRes) {
+                      page.setData({
+                        imageTempPath: canvasRes.tempFilePath,
+                        isUploading: false
+                      });
+                      resolve(canvasRes.tempFilePath);
+                    },
+                    fail(err) {
+                      console.error('图片缩放失败:', err);
+                      page.setData({
+                        imageTempPath: res.tempFilePath,
+                        isUploading: false
+                      });
+                      resolve(res.tempFilePath);
+                    }
+                  }, page);
+                }
+              } else {
+                page.setData({
+                  imageTempPath: res.tempFilePath,
+                  isUploading: false
+                });
+                resolve(res.tempFilePath);
+              }
+            },
+            fail(err) {
+              console.error('获取图片信息失败:', err);
+              page.setData({
+                imageTempPath: tempFilePath,
+                isUploading: false
+              });
+              resolve(tempFilePath);
+            }
+          });
+        },
+        fail(err) {
+          console.error('压缩图片失败:', err);
+          page.setData({
+            imageTempPath: tempFilePath,
+            isUploading: false
+          });
+          resolve(tempFilePath);
+        }
+      });
+    });
+  }
+  
+  // 上传图片到微信云存储
+  uploadImageToCloud(tempFilePath) {
+    return new Promise((resolve, reject) => {
+      // 检查路径有效性
+      if (!this.isValidFilePath(tempFilePath)) {
+        const error = new Error('无效的图片路径: ' + tempFilePath);
+        console.error(error);
+        reject(error);
+        return;
+      }
+      
+      // 如果已经是云路径，直接返回
+      if (tempFilePath.startsWith('cloud://')) {
+        resolve(tempFilePath);
+        return;
+      }
+      
+      // 检查文件是否存在
+      const fs = wx.getFileSystemManager();
+      try {
+        fs.accessSync(tempFilePath, fs.constants.F_OK);
+      } catch (err) {
+        const error = new Error('图片文件不存在: ' + tempFilePath);
+        console.error(error, err);
+        reject(error);
+        return;
+      }
+      
+      // 生成唯一的文件名（避免重复）
+      const timestamp = Date.now()
+      const random = Math.floor(Math.random() * 1000)
+      const extName = tempFilePath.split('.').pop() || 'jpg'; // 确保有扩展名
+      const cloudPath = `${this.cloudPathPrefix}${timestamp}-${random}.${extName}`
+
+      try {
+        wx.cloud.uploadFile({
+          cloudPath: cloudPath,
+          filePath: tempFilePath,
+          success: res => {
+            if (res.fileID) {
+              resolve(res.fileID)
+            } else {
+              reject(new Error('上传失败，未获取到fileID'))
+            }
+          },
+          fail: err => {
+            console.error('云存储上传失败:', err)
+            reject(new Error(`上传失败: ${err.errMsg}`))
+          }
+        })
+      } catch (err) {
+        console.error('上传过程异常:', err);
+        reject(new Error(`上传异常: ${err.message}`));
+      }
+    })
+  }
+  
+  // 移除图片
+  removeImage() {
+    const page = this.page;
+    
+    return new Promise((resolve) => {
+      // 震动反馈增强用户感知
+      wx.vibrateShort();
+      
+      wx.showModal({
+        title: '移除图片',
+        content: '确定要删除这张图片吗？',
+        confirmText: '删除',
+        confirmColor: '#ff3b30', // 使用红色突出删除操作
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            page.setData({ imageTempPath: '' });
+            AppUtils.showToast('图片已删除', 'none', 1500);
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        },
+        complete: () => {
+          page.hideImageSourceMenu();
+        }
+      });
+    });
+  }
+  
+  // 预览图片
+  previewImage(tempFilePath) {
+    if (!tempFilePath) return;
+    
+    wx.previewImage({
+      urls: [tempFilePath],
+      current: tempFilePath,
+      fail: (err) => {
+        console.error('预览图片失败:', err);
+        AppUtils.showToast('预览失败');
+      }
+    });
+  }
+}
 
 Page({
   data: {
-    // 器材信息
     equipment: {
       id: '',
-      code: '',         // 器材编号
-      name: '',         // 器材名称
-      type: '',         // 器材类型
-      specification: '',// 规格型号
-      location: '',     // 存放位置
-      quantity: 1,      // 数量
-      status: '',       // 状态
-      remarks: ''       // 备注
+      code: '', // 器材编号
+      name: '',
+      type: '',
+      location: '',
+      quantity: 1,
+      status: '',
+      specification: '',
+      remarks: '',
+      createTime: '',
+      updateTime: '',
+      imageUrl: '', // 存储图片的云文件ID
     },
+    imageTempPath: '', // 存储器材图片临时路径
+    isUploading: false, // 防止重复上传
     
-    // 选择器选项 - 包含预设选项和用户自定义选项
-    typeOptions: ['电子设备', '工具', '仪器', '耗材', '其他', '自定义...'],
-    specificationOptions: ['标准型', '增强型', '迷你型', '大型', '小型', '自定义...'],
-    locationOptions: ['仓库A区', '仓库B区', '实验室1', '实验室2', '办公室', '自定义...'],
-    statusOptions: ['在库', '借出', '维修中', '报废', '自定义...'],
+    // 图片来源选择菜单状态
+    showImageSourceMenu: false,
     
-    // 选择器状态
+    // 从配置动态生成选择器数据，包含自定义选项
+    ...(() => {
+      const result = {};
+      Object.entries(SELECTOR_CONFIG).forEach(([key, config]) => {
+        // 加载本地存储的自定义选项
+        const customOptions = AppUtils.storage(config.storageKey, undefined, 'array') || [];
+        // 合并默认选项、自定义选项和"自定义..."选项（去重处理）
+        const uniqueOptions = [...new Set([...config.options, ...customOptions])];
+        result[`${key}Options`] = [...uniqueOptions, '自定义...'];
+      });
+      return result;
+    })(),
+
+    // 选择器索引和状态
+    typeIndex: 0,
+    locationIndex: 0,
+    statusIndex: 0,
+    specificationIndex: 0,
+    // 选择器显示状态
     showTypePicker: false,
     showSpecificationPicker: false,
     showLocationPicker: false,
     showStatusPicker: false,
-    
-    // 选择器索引
-    typeIndex: [0],
-    specificationIndex: [0],
-    locationIndex: [0],
-    statusIndex: [0],
-    
-    // 自定义选项
-    showCustomType: false,
-    showCustomSpecification: false,
-    showCustomLocation: false,
-    showCustomStatus: false,
-    customType: '',
-    customSpecification: '',
-    customLocation: '',
-    customStatus: ''
+    // 当前选择器类型和标题
+    currentPickerType: '',
+    currentPickerTitle: '',
+    currentPickerOptions: [],
+    currentPickerIndex: 0,
+    // 自定义输入框状态
+    showCustomInput: {
+      type: false,
+      location: false,
+      status: false,
+      specification: false
+    },
+    customValue: '', // 临时存储自定义输入值
+    currentCustomType: '', // 当前正在编辑的自定义类型
+    // 输入框焦点状态
+    focusName: false,
+    focusQuantity: false,
+    focusRemarks: false,
+    focusCode: false,
+    // 加载状态
+    isLoading: false,
+    loadingText: '',
+    // 页面加载状态，用于动画
+    pageLoaded: false,
+    // Canvas 2D 上下文
+    canvasCtx: null,
+    canvas: null,
+    // 操作日志相关
+    showOperationLogs: false, // 控制操作日志显示
+    equipmentLogs: [] // 存储当前设备的操作日志
   },
 
-  onLoad(options) {
-    // 加载用户自定义选项
-    this.loadCustomOptions();
+  onReady() {
+    // 初始化管理器
+    this.imageManager = new ImageManager(this);
+    this.logManager = new OperationLogManager(this);
     
-    // 如果是编辑模式，加载器材数据
+    // 初始化Canvas 2D上下文，使用2D接口
+    const query = wx.createSelectorQuery()
+    query.select('#imageCanvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        const canvas = res[0].node
+        const ctx = canvas.getContext('2d')
+        this.setData({
+          canvasCtx: ctx,
+          canvas: canvas
+        })
+      })
+      
+    // 监听日志更新事件
+    app.globalEvent.on('logUpdated', (log) => {
+      const { equipment } = this.data;
+      if (equipment.id && log.equipmentId === equipment.id) {
+        this.loadEquipmentLogs(equipment.id);
+      }
+    });
+  },
+
+  // 显示图片来源选择菜单
+  showImageSourceMenu() {
+    this.setData({
+      showImageSourceMenu: true
+    });
+  },
+
+  // 隐藏图片来源选择菜单
+  hideImageSourceMenu() {
+    this.setData({
+      showImageSourceMenu: false
+    });
+  },
+
+  // 选择图片方法 - 兼容旧的事件绑定
+  chooseImage(e) {
+    // 从事件数据中获取来源类型，默认为相册
+    const sourceType = e.currentTarget.dataset.source || 'album';
+    this.chooseImageBySource(sourceType);
+  },
+
+  // 从相机选择图片
+  async chooseImageFromCamera() {
+    try {
+      const tempFilePath = await this.imageManager.chooseImage('camera');
+      await this.imageManager.checkImageSize(tempFilePath);
+      await this.imageManager.compressImage(tempFilePath);
+    } catch (err) {
+      console.error('相机选择图片处理失败:', err);
+    }
+  },
+
+  // 从相册选择图片
+  async chooseImageFromAlbum() {
+    try {
+      const tempFilePath = await this.imageManager.chooseImage('album');
+      await this.imageManager.checkImageSize(tempFilePath);
+      await this.imageManager.compressImage(tempFilePath);
+    } catch (err) {
+      console.error('相册选择图片处理失败:', err);
+    }
+  },
+
+  // 移除已选择的图片
+  async removeImage(e) {
+    // 安全检查：确保事件对象存在且有stopPropagation方法
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
+    
+    try {
+      await this.imageManager.removeImage();
+    } catch (err) {
+      console.error('移除图片失败:', err);
+    }
+  },
+
+  // 预览图片
+  previewImage(e) {
+    // 安全检查：确保事件对象和目标存在
+    if (!e || !e.target) {
+      return;
+    }
+    
+    // 安全获取className，避免undefined错误
+    const targetClass = e.target.className || '';
+    
+    // 检查事件源是否是移除按钮，如果是则不执行预览
+    if (targetClass.includes('image-remove') || targetClass.includes('remove-icon')) {
+      return;
+    }
+    
+    const { imageTempPath } = this.data;
+    this.imageManager.previewImage(imageTempPath);
+  },
+
+  // 保存器材信息
+  saveEquipment() {
+    const { code, name, type, location, quantity, status } = this.data.equipment;
+    // 安全处理所有字段
+    const safeCode = (code || '').trim();
+    const safeName = (name || '').trim();
+    const safeType = (type || '').trim();
+    const safeLocation = (location || '').trim();
+    const safeQuantity = quantity || 1;
+    const safeStatus = (status || '').trim();
+
+    // 验证必填项
+    if (!safeCode) return AppUtils.showToast('请输入器材编号');
+    if (!safeName) return AppUtils.showToast('请输入器材名称');
+    if (!safeType) return AppUtils.showToast('请选择器材类型');
+    if (!safeLocation) return AppUtils.showToast('请选择存放位置');
+    if (safeQuantity < 1) return AppUtils.showToast('请输入有效数量');
+    if (!safeStatus) return AppUtils.showToast('请选择状态');
+
+    this.showLoading(this.data.equipment.id ? '更新中...' : '保存中...');
+    
+    // 处理图片上传
+    const uploadImagePromise = this.data.imageTempPath 
+      ? this.imageManager.uploadImageToCloud(this.data.imageTempPath)
+      : Promise.resolve(null);
+      
+    uploadImagePromise
+      .then(imageFileID => {
+        try {
+          const equipmentData = {
+            ...this.data.equipment,
+            code: safeCode,
+            name: safeName,
+            type: safeType,
+            location: safeLocation,
+            quantity: safeQuantity,
+            status: safeStatus,
+            updateTime: db.serverDate()
+          };
+          
+          // 如果有新图片，更新图片ID
+          if (imageFileID) {
+            equipmentData.imageUrl = imageFileID;
+          }
+          
+          if (!this.data.equipment.id) {
+            equipmentData.id = AppUtils.generateId('eq');
+            equipmentData.createTime = db.serverDate();
+          }
+          
+          let equipmentList = app.globalData.equipmentList || AppUtils.storage('equipmentList', undefined, 'array');
+          equipmentList = AppUtils.safeArray(equipmentList);
+
+          if (this.data.equipment.id) {
+            const index = equipmentList.findIndex(item => item.id === this.data.equipment.id);
+            if (index !== -1) {
+              equipmentList[index] = equipmentData;
+            } else {
+              equipmentList.unshift(equipmentData);
+            }
+          } else {
+            equipmentList.unshift(equipmentData);
+          }
+          
+          app.globalData.equipmentList = equipmentList;
+          AppUtils.storage('equipmentList', equipmentList, 'array');
+          
+          // 记录操作日志
+          const action = this.data.equipment.id ? '更新' : '添加';
+          this.logManager.addLog(equipmentData, action);
+          
+          if (app.syncManager) {
+            // 过滤掉系统保留字段
+            const { _id, _openid, ...safeData } = equipmentData;
+            
+            app.syncManager.markDataChanged({
+              id: equipmentData.id,
+              type: this.data.equipment.id ? 'update' : 'add',
+              data: safeData // 使用过滤后的数据
+            });
+          }
+          
+          this.hideLoading();
+          AppUtils.showToast(this.data.equipment.id ? '更新成功' : '添加成功', 'success', 1500);
+          
+          setTimeout(() => {
+            safeBack();
+            const pages = getCurrentPages();
+            const prevPage = pages[pages.length - 2];
+            if (prevPage && typeof prevPage.refreshData === 'function') {
+              prevPage.refreshData();
+            }
+          }, 1500);
+          
+        } catch (error) {
+          this.hideLoading();
+          console.error('保存失败:', error);
+          AppUtils.showToast('操作失败，请重试');
+        }
+      })
+      .catch(err => {
+        this.hideLoading();
+        console.error('图片上传失败:', err);
+        AppUtils.showToast('图片上传失败');
+      });
+  },
+
+  // 页面初始化
+  onLoad(options) {
+    this.setData({
+      pageLoaded: true
+    });
+    
     if (options.id) {
       this.loadEquipmentData(options.id);
     }
-    
-    // 处理扫码带入的数据
-    if (options.scanCode) {
-      this.setData({
-        'equipment.code': decodeURIComponent(options.scanCode)
-      });
-    }
   },
 
-  // 加载用户自定义选项
-  loadCustomOptions() {
-    try {
-      const customOptions = wx.getStorageSync('customEquipmentOptions') || {};
-      
-      // 合并预设选项和自定义选项
-      if (customOptions.types && customOptions.types.length) {
-        // 在"自定义..."前插入用户自定义选项
-        const baseOptions = this.data.typeOptions.slice(0, -1);
-        const customTypes = [...new Set(customOptions.types)]; // 去重
-        this.setData({
-          typeOptions: [...baseOptions, ...customTypes, '自定义...']
-        });
-      }
-      
-      if (customOptions.specifications && customOptions.specifications.length) {
-        const baseOptions = this.data.specificationOptions.slice(0, -1);
-        const customSpecs = [...new Set(customOptions.specifications)];
-        this.setData({
-          specificationOptions: [...baseOptions, ...customSpecs, '自定义...']
-        });
-      }
-      
-      if (customOptions.locations && customOptions.locations.length) {
-        const baseOptions = this.data.locationOptions.slice(0, -1);
-        const customLocs = [...new Set(customOptions.locations)];
-        this.setData({
-          locationOptions: [...baseOptions, ...customLocs, '自定义...']
-        });
-      }
-      
-      if (customOptions.statuses && customOptions.statuses.length) {
-        const baseOptions = this.data.statusOptions.slice(0, -1);
-        const customStats = [...new Set(customOptions.statuses)];
-        this.setData({
-          statusOptions: [...baseOptions, ...customStats, '自定义...']
-        });
-      }
-    } catch (error) {
-      console.error('加载自定义选项失败:', error);
-    }
-  },
-
-  // 保存自定义选项
-  saveCustomOption(type, value) {
-    if (!value || value.trim() === '') return;
-    
-    try {
-      const customOptions = wx.getStorageSync('customEquipmentOptions') || {
-        types: [],
-        specifications: [],
-        locations: [],
-        statuses: []
-      };
-      
-      // 根据类型保存到不同数组
-      switch (type) {
-        case 'type':
-          if (!customOptions.types.includes(value)) {
-            customOptions.types.push(value);
-          }
-          break;
-        case 'specification':
-          if (!customOptions.specifications.includes(value)) {
-            customOptions.specifications.push(value);
-          }
-          break;
-        case 'location':
-          if (!customOptions.locations.includes(value)) {
-            customOptions.locations.push(value);
-          }
-          break;
-        case 'status':
-          if (!customOptions.statuses.includes(value)) {
-            customOptions.statuses.push(value);
-          }
-          break;
-      }
-      
-      wx.setStorageSync('customEquipmentOptions', customOptions);
-      
-      // 更新选项列表
-      this.loadCustomOptions();
-    } catch (error) {
-      console.error('保存自定义选项失败:', error);
-    }
-  },
-
-  // 加载器材数据（编辑模式）
+  // 加载器材数据
   loadEquipmentData(id) {
     if (!id) return;
     
+    this.showLoading('加载中...');
+    
     try {
-      // 从全局数据或本地存储中获取器材信息
-      let equipmentList = app.globalData.equipmentList || wx.getStorageSync('equipmentList') || [];
-      const equipment = equipmentList.find(item => item.id === id);
+      const targetId = String(id);
+      let equipmentList = app.globalData.equipmentList || AppUtils.storage('equipmentList', undefined, 'array');
+      equipmentList = AppUtils.safeArray(equipmentList);
+      
+      let equipment = equipmentList.find(item => String(item.id) === targetId);
+      
+      if (!equipment) {
+        const recycleBin = app.getRecycleBin() || [];
+        equipment = AppUtils.safeArray(recycleBin).find(item => String(item.id) === targetId);
+      }
       
       if (equipment) {
-        // 设置表单数据
+        // 处理图片URL
+        let imageUrl = equipment.imageUrl || '';
+        
+        // 清除包含缺失图片的URL
+        const invalidImages = ['default-equipment.png'];
+        if (invalidImages.some(img => imageUrl.includes(img))) {
+          imageUrl = '';
+        }
+        
         this.setData({
-          equipment: { ...equipment }
+          equipment: { 
+            ...equipment,
+            code: equipment.code || ''
+          },
+          imageTempPath: imageUrl
         });
         
-        // 设置选择器索引
-        this.setPickerIndex('type', equipment.type);
-        this.setPickerIndex('specification', equipment.specification);
-        this.setPickerIndex('location', equipment.location);
-        this.setPickerIndex('status', equipment.status);
+        // 批量设置选择器索引
+        Object.keys(SELECTOR_CONFIG).forEach(key => {
+          this.setPickerIndex(key, equipment[SELECTOR_CONFIG[key].field]);
+        });
+        
+        // 加载设备操作日志
+        this.loadEquipmentLogs(targetId);
       } else {
-        wx.showToast({ title: '未找到器材信息', icon: 'none' });
+        AppUtils.showToast('未找到器材信息');
         setTimeout(() => safeBack(), 1500);
       }
     } catch (error) {
       console.error('加载器材数据失败:', error);
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      AppUtils.showToast('加载失败');
+    } finally {
+      this.hideLoading();
     }
   },
+  
+  // 加载设备操作日志
+  loadEquipmentLogs(equipmentId) {
+    if (!equipmentId) return;
+    
+    const logs = this.logManager.getEquipmentLogs(equipmentId);
+    this.setData({
+      equipmentLogs: logs
+    });
+  },
+  
+  // 切换操作日志显示状态
+  toggleOperationLogs() {
+    this.setData({
+      showOperationLogs: !this.data.showOperationLogs
+    });
+  },
 
-  // 设置选择器索引
-  setPickerIndex(type, value) {
-    if (!value) return;
+  // 通用选择器索引设置方法
+  setPickerIndex(configKey, value) {
+    const config = SELECTOR_CONFIG[configKey];
+    if (!config || !value) return;
     
-    const options = this.data[`${type}Options`];
-    const index = options.findIndex(item => item === value);
-    
+    const options = this.data[`${configKey}Options`];
+    const index = options.indexOf(value);
     if (index !== -1) {
       this.setData({
-        [`${type}Index`]: [index]
+        [`${configKey}Index`]: index
       });
     }
   },
 
-  // 处理输入
+  // 显示选择器
+  showPicker(type) {
+    const config = SELECTOR_CONFIG[type];
+    if (!config) return;
+    
+    this.setData({
+      [`show${type.charAt(0).toUpperCase() + type.slice(1)}Picker`]: true,
+      currentPickerType: type,
+      currentPickerTitle: config.title,
+      currentPickerOptions: this.data[`${type}Options`],
+      currentPickerIndex: this.data[`${type}Index`]
+    });
+  },
+
+  // 显示各类选择器
+  showTypeSelector() {
+    this.showPicker('type');
+  },
+
+  showSpecificationSelector() {
+    this.showPicker('specification');
+  },
+
+  showLocationSelector() {
+    this.showPicker('location');
+  },
+
+  showStatusSelector() {
+    this.showPicker('status');
+  },
+
+  // 隐藏选择器
+  hidePicker(e) {
+    const { type } = e.currentTarget.dataset;
+    if (!type) return;
+    
+    this.setData({
+      [`show${type.charAt(0).toUpperCase() + type.slice(1)}Picker`]: false
+    });
+  },
+
+  // 选择器变更处理
+  onPickerChange(e) {
+    const { type } = e.currentTarget.dataset;
+    const index = e.detail.value[0];
+    this.setData({
+      currentPickerIndex: index
+    });
+  },
+
+  // 确认选择器选择
+  confirmPickerSelection(e) {
+    const { type } = e.currentTarget.dataset;
+    const config = SELECTOR_CONFIG[type];
+    if (!config) return;
+    
+    const options = this.data[`${type}Options`];
+    const index = this.data.currentPickerIndex;
+    const value = options[index];
+    
+    // 如果选择了"自定义..."选项
+    if (value === '自定义...') {
+      this.setData({
+        currentCustomType: type,
+        [`showCustomInput.${type}`]: true,
+        customValue: '',
+        [`show${type.charAt(0).toUpperCase() + type.slice(1)}Picker`]: false
+      });
+      
+      // 聚焦自定义输入框
+      setTimeout(() => {
+        const inputId = `custom${type.charAt(0).toUpperCase() + type.slice(1)}Input`;
+        const inputCtx = wx.createSelectorQuery().in(this).select(`#${inputId}`);
+        
+        inputCtx.fields({
+          dataset: true,
+          size: true
+        }, function(res) {
+          if (res) {
+            wx.createSelectorQuery().in(this)
+              .select(`#${inputId}`)
+              .context(function(context) {
+                if (context && context.context) {
+                  context.context.focus();
+                }
+              })
+              .exec();
+          }
+        }.bind(this)).exec();
+      }, 300);
+    } else {
+      // 正常选择处理逻辑
+      this.setData({
+        [`${type}Index`]: index,
+        [`equipment.${config.field}`]: value,
+        [`show${type.charAt(0).toUpperCase() + type.slice(1)}Picker`]: false
+      });
+    }
+  },
+
+  // 保存自定义选项
+  saveCustomOption() {
+    const { currentCustomType, customValue } = this.data;
+    if (!currentCustomType || !customValue.trim()) {
+      AppUtils.showToast('请输入内容');
+      return;
+    }
+    
+    const config = SELECTOR_CONFIG[currentCustomType];
+    if (!config) return;
+    
+    // 获取现有自定义选项
+    let customOptions = AppUtils.storage(config.storageKey, undefined, 'array');
+    
+    // 去重并添加新选项
+    const trimmedValue = customValue.trim();
+    if (!customOptions.includes(trimmedValue)) {
+      customOptions.push(trimmedValue);
+      AppUtils.storage(config.storageKey, customOptions, 'array');
+    }
+    
+    // 更新选择器选项并选择新添加的选项
+    const newOptions = [
+      ...config.options,
+      ...customOptions,
+      '自定义...'
+    ];
+    const uniqueNewOptions = [...new Set(newOptions)];
+    const newIndex = uniqueNewOptions.indexOf(trimmedValue);
+    
+    this.setData({
+      [`${currentCustomType}Options`]: uniqueNewOptions,
+      [`${currentCustomType}Index`]: newIndex,
+      [`equipment.${config.field}`]: trimmedValue,
+      [`showCustomInput.${currentCustomType}`]: false,
+      customValue: '',
+      currentCustomType: ''
+    });
+    
+    AppUtils.showToast('添加成功', 'success', 1000);
+  },
+
+  // 处理自定义输入
+  handleCustomInput(e) {
+    this.setData({
+      customValue: e.detail.value
+    });
+  },
+
+  // 取消自定义输入
+  cancelCustomInput() {
+    this.setData({
+      [`showCustomInput.${this.data.currentCustomType}`]: false,
+      customValue: '',
+      currentCustomType: ''
+    });
+  },
+
+  // 统一输入处理方法
   handleInput(e) {
     const { field } = e.currentTarget.dataset;
     this.setData({
@@ -203,495 +933,117 @@ Page({
     });
   },
 
-  // 处理数量输入
-  handleQuantityInput(e) {
-    const value = e.detail.value.trim();
-    
-    if (value === '') {
-      this.setData({ 'equipment.quantity': '' });
-      return;
-    }
-    
-    // 转换为数字并确保是正整数
-    let num = parseInt(value, 10);
-    if (isNaN(num) || num < 1) num = 1;
-    
+  // 数量调整
+  adjustQuantity(change) {
+    const newQuantity = Math.max(1, this.data.equipment.quantity + change);
     this.setData({
-      'equipment.quantity': num
+      'equipment.quantity': newQuantity
     });
-  },
-
-  // 失去焦点时验证数量
-  validateQuantity() {
-    const { quantity } = this.data.equipment;
-    if (!quantity || quantity < 1) {
-      this.setData({ 'equipment.quantity': 1 });
-    }
-  },
-
-  // 减少数量
-  decreaseQuantity() {
-    if (this.data.equipment.quantity > 1) {
-      this.setData({
-        'equipment.quantity': this.data.equipment.quantity - 1
-      });
-      // 添加震动反馈
-      wx.vibrateShort();
-    }
-  },
-
-  // 增加数量
-  increaseQuantity() {
-    const current = this.data.equipment.quantity || 0;
-    this.setData({
-      'equipment.quantity': current + 1
-    });
-    // 添加震动反馈
     wx.vibrateShort();
   },
 
-  // 聚焦输入框 - 修复：添加元素存在性检查
-  focusCodeInput() {
-    if (this.data.equipment.id) return;
-    wx.createSelectorQuery().select('#codeInput').boundingClientRect(rect => {
-      if (rect) {
-        wx.pageScrollTo({ scrollTop: rect.top - 100 });
-      }
-    }).exec();
-    
-    setTimeout(() => {
-      wx.createSelectorQuery().select('#codeInput').context(res => {
-        // 确保元素存在再调用focus
-        if (res && res.context) {
-          res.context.focus();
-        } else {
-          console.warn('未能找到codeInput元素，无法设置焦点');
-        }
-      }).exec();
-    }, 300);
+  increaseQuantity() {
+    this.adjustQuantity(1);
   },
 
-  focusNameInput() {
-    wx.createSelectorQuery().select('#nameInput').boundingClientRect(rect => {
-      if (rect) {
-        wx.pageScrollTo({ scrollTop: rect.top - 100 });
-      }
-    }).exec();
-    
-    setTimeout(() => {
-      wx.createSelectorQuery().select('#nameInput').context(res => {
-        // 确保元素存在再调用focus
-        if (res && res.context) {
-          res.context.focus();
-        } else {
-          console.warn('未能找到nameInput元素，无法设置焦点');
-        }
-      }).exec();
-    }, 300);
+  decreaseQuantity() {
+    this.adjustQuantity(-1);
   },
 
-  focusQuantityInput() {
-    setTimeout(() => {
-      wx.createSelectorQuery().select('#quantityInput').context(res => {
-        // 确保元素存在再调用focus
-        if (res && res.context) {
-          res.context.focus();
-        } else {
-          console.warn('未能找到quantityInput元素，无法设置焦点');
-        }
-      }).exec();
-    }, 300);
-  },
-
-  focusRemarksInput() {
-    wx.createSelectorQuery().select('#remarksInput').boundingClientRect(rect => {
-      if (rect) {
-        wx.pageScrollTo({ scrollTop: rect.top - 100 });
-      }
-    }).exec();
-    
-    setTimeout(() => {
-      wx.createSelectorQuery().select('#remarksInput').context(res => {
-        // 确保元素存在再调用focus
-        if (res && res.context) {
-          res.context.focus();
-        } else {
-          console.warn('未能找到remarksInput元素，无法设置焦点');
-        }
-      }).exec();
-    }, 300);
-  },
-
-  // 扫码功能
+  // 扫码获取编号
   scanCode() {
     wx.scanCode({
       success: (res) => {
         this.setData({
-          'equipment.code': res.result
+          'equipment.code': res.result,
+          focusCode: false
         });
+        AppUtils.showToast('扫码成功', 'success', 1000);
       },
       fail: (err) => {
-        console.error('扫码失败', err);
-        wx.showToast({ title: '扫码取消或失败', icon: 'none' });
+        console.error('扫码失败:', err);
+        AppUtils.showToast('扫码失败');
       }
     });
   },
 
-  // 类型选择相关
-  showTypeSelector() {
+  // 输入框聚焦方法
+  focusNameInput() {
     this.setData({ 
-      showTypePicker: true,
-      showCustomType: false
+      focusName: true,
+      focusQuantity: false,
+      focusRemarks: false,
+      focusCode: false
     });
   },
 
-  hideTypeSelector() {
-    this.setData({ showTypePicker: false });
-  },
-
-  onTypeChange(e) {
-    this.setData({ typeIndex: e.detail.value });
-    
-    // 优化：如果选择了最后一项（自定义），自动进入自定义输入
-    const index = e.detail.value[0];
-    if (index === this.data.typeOptions.length - 1) {
-      setTimeout(() => {
-        this.setData({
-          showTypePicker: false,
-          showCustomType: true,
-          customType: ''
-        });
-      }, 300);
-    }
-  },
-
-  confirmTypeSelection() {
-    const index = this.data.typeIndex[0];
-    // 跳过最后一项（自定义），因为已经在onTypeChange中处理
-    if (index < this.data.typeOptions.length - 1) {
-      this.setData({
-        'equipment.type': this.data.typeOptions[index],
-        showTypePicker: false
-      });
-    }
-  },
-
-  // 处理自定义类型输入
-  handleCustomTypeInput(e) {
-    this.setData({
-      customType: e.detail.value
-    });
-  },
-
-  // 确认自定义类型
-  confirmCustomType() {
-    const value = this.data.customType.trim();
-    if (value) {
-      this.setData({
-        'equipment.type': value,
-        showCustomType: false
-      });
-      
-      // 保存自定义选项
-      this.saveCustomOption('type', value);
-    } else {
-      wx.showToast({ title: '请输入器材类型', icon: 'none' });
-    }
-  },
-
-  // 规格型号选择相关
-  showSpecificationSelector() {
+  focusQuantityInput() {
     this.setData({ 
-      showSpecificationPicker: true,
-      showCustomSpecification: false
+      focusQuantity: true,
+      focusName: false,
+      focusRemarks: false,
+      focusCode: false
     });
   },
 
-  hideSpecificationSelector() {
-    this.setData({ showSpecificationPicker: false });
-  },
-
-  onSpecificationChange(e) {
-    this.setData({ specificationIndex: e.detail.value });
-    
-    // 优化：如果选择了最后一项（自定义），自动进入自定义输入
-    const index = e.detail.value[0];
-    if (index === this.data.specificationOptions.length - 1) {
-      setTimeout(() => {
-        this.setData({
-          showSpecificationPicker: false,
-          showCustomSpecification: true,
-          customSpecification: ''
-        });
-      }, 300);
-    }
-  },
-
-  confirmSpecificationSelection() {
-    const index = this.data.specificationIndex[0];
-    if (index < this.data.specificationOptions.length - 1) {
-      this.setData({
-        'equipment.specification': this.data.specificationOptions[index],
-        showSpecificationPicker: false
-      });
-    }
-  },
-
-  handleCustomSpecificationInput(e) {
-    this.setData({
-      customSpecification: e.detail.value
-    });
-  },
-
-  confirmCustomSpecification() {
-    const value = this.data.customSpecification.trim();
-    if (value) {
-      this.setData({
-        'equipment.specification': value,
-        showCustomSpecification: false
-      });
-      
-      // 保存自定义选项
-      this.saveCustomOption('specification', value);
-    } else {
-      wx.showToast({ title: '请输入规格型号', icon: 'none' });
-    }
-  },
-
-  // 存放位置选择相关
-  showLocationSelector() {
+  focusRemarksInput() {
     this.setData({ 
-      showLocationPicker: true,
-      showCustomLocation: false
+      focusRemarks: true,
+      focusName: false,
+      focusQuantity: false,
+      focusCode: false
     });
   },
 
-  hideLocationSelector() {
-    this.setData({ showLocationPicker: false });
-  },
-
-  onLocationChange(e) {
-    this.setData({ locationIndex: e.detail.value });
-    
-    // 优化：如果选择了最后一项（自定义），自动进入自定义输入
-    const index = e.detail.value[0];
-    if (index === this.data.locationOptions.length - 1) {
-      setTimeout(() => {
-        this.setData({
-          showLocationPicker: false,
-          showCustomLocation: true,
-          customLocation: ''
-        });
-      }, 300);
-    }
-  },
-
-  confirmLocationSelection() {
-    const index = this.data.locationIndex[0];
-    if (index < this.data.locationOptions.length - 1) {
-      this.setData({
-        'equipment.location': this.data.locationOptions[index],
-        showLocationPicker: false
-      });
-    }
-  },
-
-  handleCustomLocationInput(e) {
-    this.setData({
-      customLocation: e.detail.value
-    });
-  },
-
-  confirmCustomLocation() {
-    const value = this.data.customLocation.trim();
-    if (value) {
-      this.setData({
-        'equipment.location': value,
-        showCustomLocation: false
-      });
-      
-      // 保存自定义选项
-      this.saveCustomOption('location', value);
-    } else {
-      wx.showToast({ title: '请输入存放位置', icon: 'none' });
-    }
-  },
-
-  // 状态选择相关
-  showStatusSelector() {
+  focusCodeInput() {
     this.setData({ 
-      showStatusPicker: true,
-      showCustomStatus: false
+      focusCode: true,
+      focusName: false,
+      focusQuantity: false,
+      focusRemarks: false
     });
   },
 
-  hideStatusSelector() {
-    this.setData({ showStatusPicker: false });
-  },
-
-  onStatusChange(e) {
-    this.setData({ statusIndex: e.detail.value });
-    
-    // 优化：如果选择了最后一项（自定义），自动进入自定义输入
-    const index = e.detail.value[0];
-    if (index === this.data.statusOptions.length - 1) {
-      setTimeout(() => {
-        this.setData({
-          showStatusPicker: false,
-          showCustomStatus: true,
-          customStatus: ''
-        });
-      }, 300);
-    }
-  },
-
-  confirmStatusSelection() {
-    const index = this.data.statusIndex[0];
-    if (index < this.data.statusOptions.length - 1) {
-      this.setData({
-        'equipment.status': this.data.statusOptions[index],
-        showStatusPicker: false
-      });
-    }
-  },
-
-  handleCustomStatusInput(e) {
+  // 显示加载提示
+  showLoading(title) {
     this.setData({
-      customStatus: e.detail.value
+      isLoading: true,
+      loadingText: title || '加载中...'
     });
   },
 
-  confirmCustomStatus() {
-    const value = this.data.customStatus.trim();
-    if (value) {
-      this.setData({
-        'equipment.status': value,
-        showCustomStatus: false
-      });
-      
-      // 保存自定义选项
-      this.saveCustomOption('status', value);
-    } else {
-      wx.showToast({ title: '请输入状态', icon: 'none' });
-    }
+  // 隐藏加载提示
+  hideLoading() {
+    this.setData({
+      isLoading: false,
+      loadingText: ''
+    });
   },
 
-  // 取消
+  // 取消操作
   cancel() {
-    // 如果有已填写内容，提示确认
     const hasContent = Object.values(this.data.equipment).some(
       value => value !== null && value !== undefined && value !== ''
-    );
+    ) || this.data.imageTempPath;
     
     if (hasContent) {
       wx.showModal({
-        title: '提示',
-        content: '确定要放弃编辑吗？已填写的内容将不会保存',
+        title: '确认放弃',
+        content: '您有未保存的内容，确定要放弃吗？',
         confirmText: '放弃',
         cancelText: '继续编辑',
         success: (res) => {
-          if (res.confirm) {
-            safeBack();
-          }
+          if (res.confirm) safeBack();
         }
       });
     } else {
       safeBack();
     }
   },
-
-  // 保存器材
-  saveEquipment() {
-    const { code, name, type, location, quantity, status } = this.data.equipment;
-    
-    // 验证必填项
-    if (!code.trim()) return wx.showToast({ title: '请输入器材编号', icon: 'none' });
-    if (!name.trim()) return wx.showToast({ title: '请输入器材名称', icon: 'none' });
-    if (!type) return wx.showToast({ title: '请选择器材类型', icon: 'none' });
-    if (!location) return wx.showToast({ title: '请选择存放位置', icon: 'none' });
-    if (!quantity || quantity < 1) return wx.showToast({ title: '请输入有效数量', icon: 'none' });
-    if (!status) return wx.showToast({ title: '请选择状态', icon: 'none' });
-
-    try {
-      wx.showLoading({ title: this.data.equipment.id ? '更新中...' : '保存中...' });
-      
-      // 准备器材数据
-      const equipmentData = {
-        ...this.data.equipment,
-        updateTime: new Date().toISOString()
-      };
-      
-      // 如果是新增，添加id和创建时间
-      if (!this.data.equipment.id) {
-        equipmentData.id = `eq-${Date.now()}`;
-        equipmentData.createTime = new Date().toISOString();
-      }
-      
-      // 获取全局器材列表
-      let equipmentList = app.globalData.equipmentList || wx.getStorageSync('equipmentList') || [];
-      if (!Array.isArray(equipmentList)) equipmentList = [];
-      
-      if (this.data.equipment.id) {
-        // 编辑模式：更新现有器材
-        const index = equipmentList.findIndex(item => item.id === this.data.equipment.id);
-        if (index !== -1) {
-          equipmentList[index] = equipmentData;
-        } else {
-          // 如果没找到，作为新器材添加
-          equipmentList.unshift(equipmentData);
-        }
-      } else {
-        // 新增模式：添加新器材
-        equipmentList.unshift(equipmentData);
-      }
-      
-      // 更新全局数据和本地存储
-      app.globalData.equipmentList = equipmentList;
-      wx.setStorageSync('equipmentList', equipmentList);
-      
-      // 记录操作日志
-      this.addActivityLog(equipmentData, this.data.equipment.id ? '更新' : '添加');
-      
-      wx.hideLoading();
-      wx.showToast({ 
-        title: this.data.equipment.id ? '更新成功' : '添加成功', 
-        icon: 'success' 
-      });
-      
-      // 返回上一页并刷新数据
-      setTimeout(() => {
-        safeBack();
-        // 通知前一页刷新数据
-        const pages = getCurrentPages();
-        const prevPage = pages[pages.length - 2];
-        if (prevPage && typeof prevPage.refreshData === 'function') {
-          prevPage.refreshData();
-        }
-      }, 1500);
-      
-    } catch (error) {
-      wx.hideLoading();
-      console.error('保存失败:', error);
-      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
-    }
-  },
-
-  // 添加操作日志
-  addActivityLog(equipment, actionType) {
-    const userInfo = app.globalData.userInfo || { username: '未知用户' };
-    const activityLog = app.globalData.activityLog || wx.getStorageSync('activityLog') || [];
-    
-    const newActivity = {
-      id: `log-${Date.now()}`,
-      type: actionType,
-      content: `${userInfo.username} ${actionType === '添加' ? '新增了' : '更新了'} ${equipment.name}`,
-      createTime: new Date().toISOString(),
-      equipmentId: equipment.id
-    };
-    
-    activityLog.unshift(newActivity);
-    app.globalData.activityLog = activityLog;
-    wx.setStorageSync('activityLog', activityLog);
+  
+  // 页面卸载时清理事件监听
+  onUnload() {
+    app.globalEvent.off('logUpdated');
   }
-})
+});
     

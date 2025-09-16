@@ -118,15 +118,35 @@
   to { transform: rotate(360deg); }
 }
 
+/* 分隔线样式 */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 30rpx 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background-color: #eee;
+}
+
+.divider-text {
+  padding: 0 20rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
 .wechat-login {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 40rpx;
-  padding-top: 30rpx;
-  border-top: 1px solid #eee;
+  margin-top: 10rpx;
+  margin-bottom: 20rpx;
   color: #666;
   font-size: 28rpx;
+  background: transparent;
+  padding: 0;
 }
 
 .wechat-icon {
@@ -150,21 +170,60 @@
   margin-right: 10rpx;
 }
 
-.debug-entries {
-  margin-top: 20rpx;
-  width: 100%;
+/* 快捷登录样式 */
+.quick-login {
+  text-align: right;
+  font-size: 24rpx;
+  color: #007aff;
+  margin-bottom: 10rpx;
+  padding-right: 10rpx;
 }
 
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #333;
+/* 游客登录样式 */
+.visitor-login {
+  background-color: #f0f7ff;
+  color: #0066cc;
+  border: 1rpx solid #cce0ff;
   margin-bottom: 20rpx;
 }
 
-.admin-entry {
-  color: #999;
-  font-size: 24rpx;
-  text-align: center;
-  margin-top: 10rpx;
+.visitor-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 15rpx;
 }
-    
+
+/* 管理员入口样式 */
+.admin-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e67700;
+  font-size: 26rpx;
+  padding: 15rpx;
+  background-color: #fff8e6;
+  border-radius: 8rpx;
+  margin-top: 10rpx;
+  margin-bottom: 20rpx;
+}
+
+.admin-icon {
+  width: 30rpx;
+  height: 30rpx;
+  margin-right: 10rpx;
+}
+
+/* 注册入口样式 */
+.register-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 30rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.register-link {
+  color: #007aff;
+  margin-left: 10rpx;
+  text-decoration: none;
+}

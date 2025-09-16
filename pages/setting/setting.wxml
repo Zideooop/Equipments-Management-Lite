@@ -1,11 +1,4 @@
 <view class="container">
-  <!-- 页面标题 -->
-  <view class="page-title">设置</view>
-  
-  <!-- 返回按钮 -->
-  <view class="back-btn" bindtap="onBack">
-    <image src="/images/function/func-back.png" mode="widthFix" />
-  </view>
 
   <!-- 账户设置 -->
   <view class="setting-section">
@@ -168,4 +161,3 @@
     版本号 v{{version}}
   </view>
 </view>
-    

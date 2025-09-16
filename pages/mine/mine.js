@@ -1,6 +1,6 @@
 const app = getApp();
-const { safeNavigate, safeBack } = require('../../utils/navigation.js');
-const themeConfig = require('../../models/theme.js').default; // 修正路径和导入方式
+const navigation = require('../../utils/navigation.js');
+const themeConfig = require('../../models/theme.js').default;
 
 Page({
   data: {
@@ -8,28 +8,40 @@ Page({
     isGuest: true,
     syncStatus: '',
     lastSyncTime: '',
-    isSyncing: false, // 同步中状态
-    // 设置项数据
+    isSyncing: false,
     settings: {
-      notification: true,  // 消息通知开关
-      autoSync: false,     // 自动同步开关
-      theme: { ...themeConfig } // 主题设置
+      notification: true,
+      autoSync: false,
+      theme: { ...themeConfig }
     }
   },
 
   onLoad() {
     this.updateUserStatus();
     this.loadSyncStatus();
-    this.loadSettings(); // 加载设置项
+    this.loadSettings();
+    this.initEventListeners();
   },
 
   onShow() {
     this.updateUserStatus();
     this.loadSyncStatus();
-    this.loadSettings(); // 重新加载设置
+    this.loadSettings();
   },
 
-  // 更新用户状态
+  onUnload() {
+    if (this.syncListener) {
+      app.globalEvent.off('syncCompleted', this.syncListener);
+    }
+  },
+
+  initEventListeners() {
+    this.syncListener = (data) => {
+      this.loadSyncStatus();
+    };
+    app.globalEvent.on('syncCompleted', this.syncListener);
+  },
+
   updateUserStatus() {
     const globalUser = app.globalData.userInfo || {};
     const storageUser = wx.getStorageSync('userInfo') || {};
@@ -42,7 +54,6 @@ Page({
     });
   },
 
-  // 加载同步状态
   loadSyncStatus() {
     const lastSyncTime = wx.getStorageSync('lastSyncTime');
     const syncStatus = wx.getStorageSync('syncStatus') || '';
@@ -62,31 +73,29 @@ Page({
     }
   },
 
-  // 加载设置项
   loadSettings() {
     const savedSettings = wx.getStorageSync('appSettings') || {};
-    // 合并默认设置和保存的设置
     const settings = { ...this.data.settings, ...savedSettings };
     this.setData({ settings });
-    
-    // 应用设置（如深色模式）
     this.applySettings(settings);
   },
 
-  // 应用设置
-  applySettings(settings) {
-    // 调用全局主题应用方法
-    getApp().applyTheme(settings.theme);
+  applySettings() {
+    const app = getApp();
+    if (app.themeManager) {
+      app.themeManager.applyTheme({
+        mode: this.data.themeMode,
+        color: this.data.themeColor
+      });
+    }
   },
 
-  // 保存设置项
   saveSettings() {
-    wx.setStorageSync('appSettings', this.data.settings);
+    app.saveEquipmentList('appSettings', this.data.settings);
     this.applySettings(this.data.settings);
     wx.showToast({ title: '设置已保存' });
   },
 
-  // 切换设置开关
   toggleSetting(e) {
     const key = e.currentTarget.dataset.key;
     const settings = { ...this.data.settings };
@@ -95,41 +104,60 @@ Page({
     this.saveSettings();
   },
 
-  // 跳转到器材管理中心（合并后的入口）
+  // 修复核心功能入口跳转问题：简化判断逻辑，确保导航正常
   navigateToManage() {
     if (this.data.isGuest) {
       this.showLoginGuide('器材管理功能需要登录后使用');
       return;
     }
-    // 统一跳转至整合后的器材管理中心
-    safeNavigate('/pages/equipmentHub/equipmentHub');
+    // 直接使用wx.navigateTo确保跳转生效
+    wx.navigateTo({
+      url: '/pages/equipmentHub/equipmentHub',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 跳转到回收站
   navigateToRecycle() {
     if (this.data.isGuest) {
       this.showLoginGuide('回收站功能需要登录后使用');
       return;
     }
-    safeNavigate('/pages/recycleBin/recycleBin');
+    wx.navigateTo({
+      url: '/pages/recycleBin/recycleBin',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 跳转到首页操作记录
   navigateToRecords() {
     if (this.data.isGuest) {
       this.showLoginGuide('操作记录功能需要登录后使用');
       return;
     }
-    // 跳转到首页并滚动到操作记录区域
-    safeNavigate('/pages/index/index?scrollTo=records');
+    wx.navigateTo({
+      url: '/pages/index/index?scrollTo=records',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 跳转到设置页面
   navigateToSetting() {
-    safeNavigate('/pages/setting/setting');
+    wx.navigateTo({
+      url: '/pages/setting/setting',
+      fail: (err) => {
+        console.error('跳转失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 数据同步
   syncData() {
     if (this.data.isGuest) {
       this.showLoginGuide('数据同步功能需要登录后使用');
@@ -144,28 +172,32 @@ Page({
           const now = new Date();
           const formattedTime = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
           
-          wx.setStorageSync('lastSyncTime', now.toISOString());
-          wx.setStorageSync('syncStatus', 'success');
+          app.saveEquipmentList('lastSyncTime', now.toISOString());
+          app.saveEquipmentList('syncStatus', 'success');
           
           this.setData({
             lastSyncTime: formattedTime,
             syncStatus: 'success'
           });
+          
+          app.globalEvent.emit('syncCompleted', {
+            timestamp: now.toISOString()
+          });
+          
           wx.showToast({ title: '同步成功' });
         } else {
-          wx.setStorageSync('syncStatus', 'failed');
+          app.saveEquipmentList('syncStatus', 'failed');
           this.setData({ syncStatus: 'failed' });
           wx.showToast({ title: '同步失败', icon: 'none' });
         }
       })
       .catch(() => {
         this.setData({ isSyncing: false, syncStatus: 'failed' });
-        wx.setStorageSync('syncStatus', 'failed');
+        app.saveEquipmentList('syncStatus', 'failed');
         wx.showToast({ title: '同步失败', icon: 'none' });
       });
   },
 
-  // 显示登录引导
   showLoginGuide(content) {
     wx.showModal({
       title: '请先登录',
@@ -174,23 +206,39 @@ Page({
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
-          safeNavigate('/pages/login/login');
+          wx.navigateTo({
+            url: '/pages/login/login',
+            fail: (err) => {
+              console.error('跳转登录失败:', err);
+              wx.showToast({ title: '跳转失败', icon: 'none' });
+            }
+          });
         }
       }
     });
   },
 
-  // 去登录
   goToLogin() {
-    safeNavigate('/pages/login/login');
+    wx.navigateTo({
+      url: '/pages/login/login',
+      fail: (err) => {
+        console.error('前往登录页失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 编辑资料
+  // 移除编辑资料功能（如果不需要）
   editProfile() {
-    safeNavigate('/pages/profile/edit');
+    wx.navigateTo({
+      url: '/pages/profile/edit',
+      fail: (err) => {
+        console.error('前往编辑页失败:', err);
+        wx.showToast({ title: '跳转失败', icon: 'none' });
+      }
+    });
   },
 
-  // 确认退出登录
   confirmLogout() {
     wx.showModal({
       title: '确认退出',
@@ -205,14 +253,19 @@ Page({
     });
   },
 
-  // 退出登录
   logout() {
+    // 清除登录状态
     app.globalData.userInfo = null;
+    app.globalData.isGuest = true;
+    app.globalData.isAdmin = false;
     wx.removeStorageSync('userInfo');
-    wx.removeStorageSync('token');
-    this.updateUserStatus();
-    wx.showToast({ title: '已退出登录' });
-    safeNavigate('/pages/index/index');
+    
+    // 跳转到首页
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: (err) => {
+        console.error('退出登录跳转失败:', err);
+      }
+    });
   }
 });
-    

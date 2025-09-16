@@ -64,6 +64,8 @@
         class="activity-item" 
         wx:for="{{recentActivities}}" 
         wx:key="id"
+        bindtap="showActivityDetail"
+        data-id="{{item.id}}"
       >
         <!-- 活动类型图标 -->
         <view class="activity-icon {{_getActivityTypeStyle(item.type).className}}">
@@ -84,26 +86,14 @@
     </view>
   </view>
 
-  <!-- 悬浮按钮 -->
-  <view class="fab {{fabOpen ? 'open' : ''}}" bindtap="toggleFab">
-    <image src="/images/status/add-white.png" mode="widthFix" class="fab-icon" />
-  </view>
-  
-  <!-- 悬浮菜单 -->
-  <view class="fab-menu {{fabOpen ? 'show' : ''}}">
-    <view class="fab-item" bindtap="handleFabAction" data-action="scan">
-      <image src="/images/function/func-scan.png" mode="widthFix" class="menu-item-icon" />
-      <text>扫码入库</text>
-    </view>
-    <!-- 新增二维码生成入口 -->
-    <view class="fab-item" bindtap="handleFabAction" data-action="qrcode">
-      <image src="/images/function/func-qrcode.png" mode="widthFix" class="menu-item-icon" />
-      <text>QR生成</text>
-    </view>
-    <view class="fab-item" bindtap="handleFabAction" data-action="sync">
-      <image src="/images/function/func-sync.png" mode="widthFix" class="menu-item-icon" />
-      <text>同步数据</text>
-    </view>
-  </view>
+  <!-- 替换原有fab元素为float-button组件 -->
+  <float-button 
+    menuItems="{{floatMenuItems}}" 
+    bind:menuclick="handleFabAction"
+  ></float-button>
 </view>
-    
+<!-- 在页面中添加组件标签 -->
+<float-button 
+  bind:click="onFloatButtonClick" 
+  bind:menuclick="onFloatMenuClick"
+/>

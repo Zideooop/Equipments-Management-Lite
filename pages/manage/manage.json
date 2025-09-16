@@ -1,5 +1,7 @@
 {
-  "navigationBarTitleText": "器材管理",
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "navigationBarTitleText": "设备管理",
+  "usingComponents": {
+    "float-button": "/components/floatButton/floatButton"
+  }
 }
+    

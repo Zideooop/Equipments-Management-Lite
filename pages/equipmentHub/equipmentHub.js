@@ -42,6 +42,28 @@ Page({
     this.loadEquipmentList();
     this.loadInventoryDraft();
     this.loadRecentEquipment(); // 加载最近器材
+    
+    // 初始化事件监听
+    this.initEventListeners();
+  },
+
+  onUnload() {
+    // 移除事件监听
+    if (this.syncListener) {
+      const app = getApp();
+      app.globalEvent.off('syncCompleted', this.syncListener);
+    }
+  },
+
+  // 初始化事件监听
+  initEventListeners() {
+    const app = getApp();
+    // 监听同步完成事件
+    this.syncListener = () => {
+      this.loadEquipmentList();
+      this.loadRecentEquipment();
+    };
+    app.globalEvent.on('syncCompleted', this.syncListener);
   },
 
   // 切换选项卡
@@ -82,8 +104,10 @@ Page({
     try {
       const equipmentList = app.getEquipmentList() || [];
       
-      // 提取器材名称用于选择器
-      const equipmentNames = equipmentList.map(item => `${item.name} (${item.id})`);
+      // 加载器材列表时，生成显示名称
+      const equipmentNames = equipmentList.map(item => 
+        item.code ? `${item.name} (${item.code})` : `${item.name} (${item.id})`
+      );
       
       this.setData({
         equipmentList,
@@ -214,6 +238,9 @@ Page({
 
   // 生成条码
   generateCode(equipmentId) {
+    const equipment = this.data.equipmentList.find(item => item.id === equipmentId);
+    const codeContent = equipment?.code || equipmentId; // 优先使用code
+    // 生成条码时使用codeContent...
     this.showLoading(`生成${this.data.codeType === 'qr' ? '二维码' : '条形码'}中...`);
     
     // 模拟生成条码（实际项目中替换为真实接口）
@@ -472,7 +499,7 @@ Page({
       saveTime: new Date().toISOString()
     };
     
-    wx.setStorageSync('inventoryDraft', draft);
+    app.saveEquipmentList('inventoryDraft', draft);
   },
 
   // 加载清单草稿
@@ -685,4 +712,3 @@ Page({
     }, 3000);
   }
 })
-    
