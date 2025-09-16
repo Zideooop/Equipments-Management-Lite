@@ -2,11 +2,16 @@
   class="float-btn {{isOpen ? 'open' : ''}}" 
   bindtap="toggleMenu"
   hover-class="btn-hover"
+  style="background-color: {{isOpen ? openColor : mainColor}}"
 >
   <text class="btn-icon">+</text>
 </view>
 
-<view class="menu-container {{isOpen ? 'menu-open' : ''}}">
+<!-- 增加容错处理：当menuItems为空时不渲染菜单容器 -->
+<view 
+  class="menu-container {{isOpen ? 'menu-open' : ''}}"
+  wx:if="{{menuItems.length > 0}}"
+>
   <view 
     wx:for="{{menuItems}}" 
     wx:key="index" 
@@ -15,7 +20,7 @@
     bindtap="handleMenuClick"
     data-index="{{index}}"
   >
-    <text class="menu-icon">{{item.icon}}</text>
+    <text class="menu-icon">{{item.icon || '●'}}</text> <!-- 提供默认图标 -->
     <text class="menu-text">{{item.text}}</text>
   </view>
 </view>

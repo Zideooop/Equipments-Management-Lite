@@ -1,4 +1,4 @@
-/* 悬浮按钮样式 */
+/* 悬浮按钮样式 - 解决与全局样式冲突 */
 .float-btn {
   position: fixed;
   right: 30rpx;
@@ -11,8 +11,9 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 6rpx 16rpx rgba(22, 119, 255, 0.4);
-  z-index: 1000;
+  z-index: 1000; /* 提高层级，避免被其他组件遮挡 */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto; /* 确保可点击 */
 }
 
 .float-btn .btn-icon {
@@ -46,16 +47,18 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 20rpx;
-  z-index: 999;
+  z-index: 999; /* 菜单层级低于主按钮 */
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 /* 菜单展开状态 */
 .menu-container.menu-open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 /* 菜单项 */
@@ -102,4 +105,3 @@
   transform: scale(0.96) translateY(0);
   background-color: #f5f5f5;
 }
-    

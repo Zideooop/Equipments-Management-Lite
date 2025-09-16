@@ -1,5 +1,8 @@
 const cloud = require('wx-server-sdk');
-cloud.init();
+cloud.init({
+  traceUser: true,
+  env: "cloudbase-5gx4izq3da5eda5e"  // 与设备管理云函数统一环境ID
+});
 const db = cloud.database();
 const crypto = require('crypto');
 
@@ -25,8 +28,8 @@ const handleRegister = async (params) => {
   await db.collection('users').add({
     data: {
       username,
-      password,
-      role: '普通用户',
+      password: encryptPassword(password), // 确保密码加密存储
+      role: 'team_member', // 内测阶段默认团队成员角色
       createTime: new Date().toISOString(),
       lastLoginTime: null,
       token: null,
@@ -53,7 +56,7 @@ const handleLogin = async (params) => {
     }
 
     const storedUser = user.data[0];
-    if (storedUser.password !== password) {
+    if (storedUser.password !== encryptPassword(password)) {
       return { success: false, message: '密码错误' };
     }
 
@@ -77,7 +80,7 @@ const handleLogin = async (params) => {
         id: storedUser._id,
         username: storedUser.username,
         nickName: storedUser.nickName || username,
-        role: storedUser.role || '普通用户',
+        role: storedUser.role || 'team_member',
         token
       }
     };
@@ -102,7 +105,7 @@ const handleLogin = async (params) => {
           username: `wx_${wxRes.openid.slice(0, 8)}`,
           nickName: userInfo.nickName,
           avatarUrl: userInfo.avatarUrl,
-          role: '普通用户',
+          role: 'team_member',
           password: encryptPassword(Math.random().toString(36).slice(-8)), // 随机密码
           createTime: new Date().toISOString(),
           lastLoginTime: new Date().toISOString()
@@ -145,11 +148,6 @@ const handleLogin = async (params) => {
   return { success: false, message: '缺少登录参数' };
 }
 
-
-
-
-;
-
 // 处理密码重置
 const handleResetPassword = async (params) => {
   const { username, newPassword } = params;
@@ -166,7 +164,7 @@ const handleResetPassword = async (params) => {
     .where({ username })
     .update({
       data: { 
-        password: newPassword,
+        password: encryptPassword(newPassword),
         updateTime: new Date().toISOString()
       }
     });
@@ -241,3 +239,4 @@ exports.main = async (event, context) => {
     return { success: false, message: '服务器异常' };
   }
 };
+    
