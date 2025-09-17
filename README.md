@@ -101,7 +101,7 @@ management-lite/
    - 复制环境 ID，修改 `app.js` 中的配置：
      ```javascript
      const CONFIG = {
-       CLOUD_ENV: "替换为你的云环境ID"  // 例如：cloudbase-5gx4izq3da5eda5e
+       CLOUD_ENV: "替换为你的云环境ID"  // 例如：cloudbase-123456
      };
      ```
 
